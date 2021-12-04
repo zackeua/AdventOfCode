@@ -18,20 +18,21 @@ class Tile:
     
     def hashes(self):
         pam = {'#':0, '.':1}
-        h1 = sum([10**i * pam[num] for i, num in enumerate(self._grid[0])])
-        + sum([10**i * pam[num] for i, num in enumerate(self._grid[0][::-1])])
+        h11 = sum([10**i * pam[num] for i, num in enumerate(self._grid[0])])
 
-        h2 = sum([10**i * pam[num] for i, num in enumerate(self._grid[-1])])
-        + sum([10**i * pam[num] for i, num in enumerate(self._grid[-1][::-1])])
+        h12 = sum([10**i * pam[num] for i, num in enumerate(self._grid[0][::-1])])
 
-        h3 = sum([10**i * pam[num[0]] for i, num in enumerate(self._grid)])
-        + sum([10**i * pam[num[0]] for i, num in enumerate(self._grid[::-1])])
+        h21 = sum([10**i * pam[num] for i, num in enumerate(self._grid[-1])])
+        h22 = sum([10**i * pam[num] for i, num in enumerate(self._grid[-1][::-1])])
 
-        h4 = sum([10**i * pam[num[-1]] for i, num in enumerate(self._grid)])
-        + sum([10**i * pam[num[-1]] for i, num in enumerate(self._grid[::-1])])
-        return [h1, h2, h3, h4]
+        h31 = sum([10**i * pam[num[0]] for i, num in enumerate(self._grid)])
+        h32 =  sum([10**i * pam[num[0]] for i, num in enumerate(self._grid[::-1])])
+
+        h41 = sum([10**i * pam[num[-1]] for i, num in enumerate(self._grid)])
+        h42 = sum([10**i * pam[num[-1]] for i, num in enumerate(self._grid[::-1])])
+        return [h11, h12, h22, h21, h31, h32, h41, h42]
         
-with open('small20.txt','r') as f:
+with open('input.txt','r') as f:
     data = f.readlines()
 
 #print(data)
@@ -57,12 +58,21 @@ for i in range(len(data)):
         parse = True
         num = int(data[i][5:-2])
         grid = []
+tiles.append(Tile(num, grid))
+print(tiles[-1])
+print(tiles[-1].hashes())
+
 
 hash_list = []
 for tile in tiles:
     hash_list.extend(tile.hashes())
 
 prod = []
-for tile in tiles:    
-    hash_match = [hash_list.count(h) for h in tile.hashes()]
+res = 1
+for tile in tiles:
+    hash_match = [hash_list.count(h)-1 for h in tile.hashes()]
     print(f'Tile {tile._number} matches : {hash_match} tiles')
+    if hash_match.count(0) == 4:
+        res *= tile._number
+
+print(res)
