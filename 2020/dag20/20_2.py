@@ -1,4 +1,4 @@
-
+from math import sqrt
 
 class Tile:
     """docstring for Pice."""
@@ -19,6 +19,7 @@ class Tile:
     def hashes(self):
         pam = {'#':0, '.':1}
         h11 = sum([10**i * pam[num] for i, num in enumerate(self._grid[0])])
+
         h12 = sum([10**i * pam[num] for i, num in enumerate(self._grid[0][::-1])])
 
         h21 = sum([10**i * pam[num] for i, num in enumerate(self._grid[-1])])
@@ -29,10 +30,9 @@ class Tile:
 
         h41 = sum([10**i * pam[num[-1]] for i, num in enumerate(self._grid)])
         h42 = sum([10**i * pam[num[-1]] for i, num in enumerate(self._grid[::-1])])
+        return list(map(lambda x: int(str(x),2), [h11, h12, h22, h21, h31, h32, h41, h42]))
         
-        return [h11, h12, h22, h21, h31, h32, h41, h42]
-        
-with open('input.txt','r') as f:
+with open('test.txt','r') as f:
     data = f.readlines()
 
 #print(data)
@@ -59,20 +59,46 @@ for i in range(len(data)):
         num = int(data[i][5:-2])
         grid = []
 tiles.append(Tile(num, grid))
-#print(tiles[-1])
-#print(tiles[-1].hashes())
+
 
 
 hash_list = []
+tile_map = {}
 for tile in tiles:
     hash_list.extend(tile.hashes())
+    tile_map[tile._number] = tile.hashes()
 
-prod = []
-res = 1
+
+for tile in tiles:
+    print(f'Tile {tile._number} matches : {tile.hashes()} tiles')
+
+img = [[None]*int(sqrt(len(tiles))) for _ in range(int(sqrt(len(tiles))))]
+
 for tile in tiles:
     hash_match = [hash_list.count(h)-1 for h in tile.hashes()]
-    #print(f'Tile {tile._number} matches : {hash_match} tiles')
+    print(f'Tile {tile._number} matches : {hash_match} tiles')
     if hash_match.count(0) == 4:
-        res *= tile._number
+        img[0][0] = tile._number
 
-print(res)
+for row in img:
+    print(row)
+print()
+#while(1 in [None in row for row in img]):
+#    for row in img:
+#        print(row)
+#    print('\n')
+
+
+i = 0
+for tile in tiles:
+    if 1 not in [tile in row for row in img]:
+        for tile_hash in tile_map[img[0][i]]:
+            matches += tile_hash in tile.hashes()
+        if matches == 2 and :
+            i += 1
+            img[0][i] = tile._number
+        if i == int(sqrt(len(tiles))) and matches == :
+
+
+for row in img:
+    print(row)
