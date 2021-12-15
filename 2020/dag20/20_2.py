@@ -79,26 +79,72 @@ for tile in tiles:
     print(f'Tile {tile._number} matches : {hash_match} tiles')
     if hash_match.count(0) == 4:
         img[0][0] = tile._number
-
+'''
 for row in img:
     print(row)
 print()
-#while(1 in [None in row for row in img]):
-#    for row in img:
-#        print(row)
-#    print('\n')
-
+'''
 
 i = 0
-for tile in tiles:
-    if 1 not in [tile in row for row in img]:
-        for tile_hash in tile_map[img[0][i]]:
-            matches += tile_hash in tile.hashes()
-        if matches == 2 and :
-            i += 1
-            img[0][i] = tile._number
-        if i == int(sqrt(len(tiles))) and matches == :
+while i != int(sqrt(len(tiles)))-1:
+    for tile in tiles:
+        if 1 not in [tile._number in row for row in img]:
+            matches = 0
+            for tile_hash in tile_map[img[0][i]]:
+                matches += tile_hash in tile.hashes()
+            if matches == 2:
+                i += 1
+                img[0][i] = tile._number
+            if i == int(sqrt(len(tiles)))-1:
+                break
+'''
+for row in img:
+    print(row)
+'''
 
+j = 0
+while j != int(sqrt(len(tiles)))-1:
+    for tile in tiles:
+        if 1 not in [tile._number in row for row in img]:
+            matches = 0
+            for tile_hash in tile_map[img[j][0]]:
+                matches += tile_hash in tile.hashes()
+            if matches == 2:
+                j += 1
+                img[j][0] = tile._number
+            if j == int(sqrt(len(tiles)))-1:
+                break
+'''
+for row in img:
+    print(row)
+'''
+
+i = 0
+j = 0
+
+while j != int(sqrt(len(tiles)))-1:
+    c = True
+    for tile in tiles:
+        if 1 not in [tile._number in row for row in img] and c:
+            matches = 0
+            for tile_hash in tile_map[img[j][i+1]]:
+                matches += tile_hash in tile.hashes()
+            for tile_hash in tile_map[img[j+1][i]]:
+                matches += tile_hash in tile.hashes()
+
+            if matches == 4:
+                i += 1
+                img[j+1][i] = tile._number
+            if i == int(sqrt(len(tiles)))-1:
+                j += 1
+                i = 0
+                c = False
+        '''
+        for row in img:
+            print(row)
+        '''
 
 for row in img:
     print(row)
+
+picture = [None for _ in range()]
