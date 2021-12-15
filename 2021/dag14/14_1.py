@@ -1,4 +1,3 @@
-from os import nice
 import sys
 
 with open(sys.argv[1], 'r') as f:
@@ -32,7 +31,7 @@ def step(template):
     return result
 
 
-print(''.join(template))
+#print(''.join(template))
 niter = 0
 while niter < 10:
     template = step(template)
