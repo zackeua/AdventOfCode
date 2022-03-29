@@ -1,0 +1,7 @@
+Ingredients = {Butterscotch, Cinnamon};
+
+Capacity = [-1, 2];
+Durability = [-2, 3];
+Flavour = [6, -2];
+Texture = [3, -1];
+Calories = [8, 3];
