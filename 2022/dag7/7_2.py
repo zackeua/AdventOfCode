@@ -9,79 +9,51 @@ def is_num(num):
 
 def main():
 
+    count = 0
     with open(sys.argv[1], 'r') as f:
         data = f.readlines()
         data = [row.replace('\n', '') for row in data]
         dirs = {}
-        current_dir = '/'
-        previous_dir = []
-        previous_child_dirs = []
-        child_dirs = []
-        total = 0
-        previous_total = []
-        print('- / (dir)')
-        for i, line in enumerate(data):
-            if 'cd' in line:
-                if '..' not in line: # go down one level
-                    previous_dir.append(current_dir)
-                    current_dir = previous_dir[-1] + '/' + line.split(' ')[-1]
-                    previous_child_dirs.append(child_dirs.copy())
-                    child_dirs = []
-                    previous_total.append(total)
-                    total = 0
-                else: # go up one level
-                    dirs[current_dir] = total + sum([dirs[dir] for dir in child_dirs if dir in dirs])
-                    current_dir = previous_dir[-1]
-                    previous_dir = previous_dir[:-1]
-                    child_dirs = previous_child_dirs[-1]
-                    previous_child_dirs = previous_child_dirs[:-1]
-                    total = previous_total[-1]
-                    previous_total = previous_total[:-1]
+        parent_dirs = [''] # initial / root directory
+        dirs[''] = 0
+        for line in data[1:]:
+            if '$ cd' in line: # Change directories
+                if '..' in line: # go up one level
+                    parent_dirs = parent_dirs[:-1]
+                else: # go down one level
+                    count += 1
+                    assert(line != '$ cd ..')
+                    # add new dir name after all parents to get absolute path
+                    current_dir = '/'.join([parent_dirs[-1],line.split(' ')[-1]])
+                    assert(current_dir not in dirs)
+                    dirs[current_dir] = 0 # initialize current dir size
+                    parent_dirs.append(current_dir)
 
-            elif 'dir' in line:
-                path = current_dir + '/' + line.split(' ')[1]
-                #print(path)
-                child_dirs.append(path)
-                taps = "  "*(len(previous_dir)+1)
-                print(f'{taps}- {child_dirs[-1]} (dir)')
+            elif 'dir' in line: # just skip
+                pass
+
             else:
                 elems = line.split(' ')
-                if len(elems) == 2:
-                    if is_num(elems[0]):
-                        total += int(elems[0])
-                        taps = "  "*(len(previous_dir)+1)
-                        print(
-                            f'{taps}- {elems[1]} (file, size={int(elems[0])})')
+                if is_num(elems[0]): # If file add that size to all parent dirs
+                    for parent in parent_dirs:
+                        dirs[parent] += int(elems[0])
 
-        while previous_dir != []:
-            path = current_dir
-            dirs[path] = total + sum([dirs[dir] for dir in child_dirs if dir in dirs])
-            current_dir = previous_dir[-1]
-            previous_dir = previous_dir[:-1]
-            child_dirs = previous_child_dirs[-1]
-            previous_child_dirs = previous_child_dirs[:-1]
-            total = previous_total[-1]
-            previous_total = previous_total[:-1]
 
-        
+
         sorted_sizes = [dirs[d] for d in dirs]
-        #print(dirs)
-        current_space = 70000000 - dirs['///']
-        #               65560094
-        #               4439906
-        print(dirs['///'])
-        print(max(sorted_sizes))
-        #print(current_space)
-        sorted_sizes.sort()
-        for elem in sorted_sizes:
-             if current_space + elem >= 30000000:
-                 print(elem)
-                
-
-                
-
+        directories = [d for d in dirs]
+        for dir in directories:
+            print(dir)
         
-        #data = [row.split('\n') for row in data]
+
+        sorted_sizes.sort()
+
+        print(sorted_sizes)
+        print(len(sorted_sizes))
+        for elem in sorted_sizes:
+            if 70000000 - dirs[''] + elem >= 30000000:
+                 print(elem)
+                 sys.exit()
  
 
 if __name__ == '__main__':
