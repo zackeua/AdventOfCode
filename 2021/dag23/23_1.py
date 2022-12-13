@@ -137,7 +137,7 @@ def valid_moves(s):
             free_path = True
             for i in range(piece[1], -1, -1):
                 if (0, i) in empty:
-                    free_path = free_path and empty[(0, piece[1]-i)]
+                    free_path = free_path and empty[(0, i)]
                     if free_path and (i % 2 == 1 or i == 0):
                         l = to_list(s)
                         flip(l, (0, i), piece)

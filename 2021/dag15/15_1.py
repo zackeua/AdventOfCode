@@ -1,6 +1,5 @@
 import sys
 import networkx as nx
-from networkx.algorithms.shortest_paths import weighted
 with open(sys.argv[1], 'r') as f:
     data = f.readlines()
     data = [row.replace('\n', '') for row in data]
