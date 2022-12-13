@@ -1,6 +1,6 @@
 import sys
 from functools import lru_cache
-
+import heapq
 
 def to_list(tup):
     return [list(row) for row in tup]
@@ -154,6 +154,7 @@ def valid_moves(s):
                         moves.append((to_tup(l), c))
     #moves = [("#############\n#A..........#\n###.#B#C#D###\n  #A#B#C#D#\n  #########", 0)]
 
+    
     return moves
 
 
@@ -187,37 +188,56 @@ goal = to_tup(goal)
 #data = "#############\n#...........#\n###B#B#C#D###\n  #A#A#C#D#\n  #########"
 g = {}
 Q = [data]
-V = []
+V = set()
 g[goal] = (float('inf'), None)
 g[data] = (0, None)
 
 
-#print(g)
+heap = []
+heapq.heappush(heap, (0, data))
+
+print(data)
+
+# start search
 n_iter = 0
-while Q != []:
-    us = [(s, g[s][0]) for s in Q]
-    us.sort(key=lambda t: t[1])
+while heap != []:
+    #us = [(s, g[s][0]) for s in Q]
+    #us.sort(key=lambda t: t[1])
+
+    u = heapq.heappop(heap)
+
     #print(f'iter: {n_iter}')
     #n_iter += 1
     #for key in g:
     #    print(g[key])
     #    show(key)
+    #print(len(heap))
+    #print(heap)
     #input()
-    u = us[0][0]
-    Q.remove(u)
-    V.append(u)
-    #if u == goal:
-    #    print('here')
-    #    break
-    moves = valid_moves(u)
-    Q.extend([move for move, _ in moves if move not in V])
+    #u = us[0][0]
+    #Q.remove(u)
+    V.add(u[1])
+    print('here', u[1])
+    input()
+    if u[1] == goal:
+        print('here')
+        break
+    moves = valid_moves(u[1])
+    print(len(moves))
+    print(moves)
+    #print(moves[0] == data)
+    
+    #Q.extend([move for move, _ in moves if move not in V])
 
     for move, c in moves:
 
         if move not in V:
-            cc = g[u][0] + c
+            cc = g[u[1]][0] + c
             if move in g and cc < g[move][0] or move not in g:
-                g[move] = (cc, u)
+                g[move] = (cc, u[1])
+        
+        heapq.heappush(heap, g[move])
+
 #print(g)
 print(g[goal])
 
