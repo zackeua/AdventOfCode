@@ -75,11 +75,9 @@ def dijkstras(heap: heapq, target, blizzard_list, x_size, y_size) -> int:
     reached2 = False
     while heap != []:
         u = heapq.heappop(heap)
-        #print(heap)
-        #input()
-        #print(u, target)
+        
         if (u[1], u[2]) == target and u[3] and u[4]: # found target node
-            return u[0]
+            return u[0] + 1
 
         visited.add(u)
         #show_grid(u, target, blizzard_list, x_size, y_size)
@@ -88,24 +86,12 @@ def dijkstras(heap: heapq, target, blizzard_list, x_size, y_size) -> int:
 
         for move in new_moves:
             if move not in visited and move not in heap:
-                if (move[1], move[2]) == target:
-                    if not reached1:
-                        print('here1')
-                        print(move[0])
-                        heap = []
-                        reached1 = True
+                if not move[3] and not move[4] and (move[1], move[2]) == target:
                     heapq.heappush(heap, (move[0], move[1], move[2], True, False))
-                elif move[3] and (move[1], move[2]) == (0, -1):
-                    if not reached2:
-                        print('here2')
-                        print(move[0])
-                        heap = []
-                        reached2 = True
+                elif move[3] and not move[4] and (move[1], move[2]) == (0, -1):
                     heapq.heappush(heap, (move[0], move[1], move[2], True, True))
                 else:
                     heapq.heappush(heap, move)
-
-    print(u)
 
 def main():
     

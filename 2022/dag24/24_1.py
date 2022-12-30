@@ -75,7 +75,7 @@ def dijkstras(heap: heapq, target, blizzard_list, x_size, y_size) -> int:
         u = heapq.heappop(heap)
         #print(heap)
         #input()
-        print(u, target)
+        #print(u, target)
         if (u[1], u[2]) == target: # found target node
             return u[0]
 
