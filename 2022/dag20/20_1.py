@@ -1,6 +1,6 @@
 import sys
 
-debug = True
+debug = False
 
 def debug_print(*s, **args):
     if debug:
@@ -25,46 +25,34 @@ def main():
                i += 1
             else:
                 position = i + current_element[0]
-                was_greater = False
-                was_less = False
-                while position <= 0:
-                    position += length-1
-                
-                while position > length:
-                    was_greater = True
-                    position -= length-1
 
-                if was_greater:
-                    position -= 1
-                
-                if was_less:
-                    position += 1
+                debug_print(position)
+                if position < 0:
+                    position = position + position // length
+                if position > length:
+                    position = position + position // length
 
-                data.insert(position+1,  (current_element[0], True))
-                
-                offset = 0
-                if i < position:
-                    data.pop(i)
-                elif i == position:
-                    data.pop(i)
-                else:
-                    offset = 1
-                    data.pop(i+1)
-                
-                if i == position:
-                    debug_print(f'{current_element[0]} does not move:')
-                    i += 1
-                else:
-                    pass
-                    debug_print(f'{current_element[0]} moves between {data[(position-1+offset)%length][0]} and {data[(position+1+offset)%length][0]}:')
-                #print(i, position+1)
-                show_array(data)
-                debug_print()
+                position = position % length
+
+                if position < i:
+                    for pos in range(i, position, -1):
+                        data[pos] = data[pos - 1]
+                elif i < position:
+                    for pos in range(i, position):
+                        data[pos] = data[pos + 1]
+
+                data[position] = (current_element[0], True)
             
 
-        #print(data)
-
-        print([elem[0] for elem in data])
+                if i == position:
+                    debug_print(f'{current_element[0]} does not move:')
+                else:
+                    debug_print(f'{current_element[0]} moves between {data[(position - 1) % length][0]} and {data[(position + 1) % length][0]}:')
+                show_array(data)
+                #debug_print(data)
+                debug_print()
+        
+        print([elem for elem in data])
         assert(all([elem[1] for elem in data]))
         numbers = [elem[0] for elem in data]
         index_of_0 = numbers.index(0)
