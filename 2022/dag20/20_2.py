@@ -1,6 +1,6 @@
 import sys
 
-debug = True
+debug = False
 
 
 decryption_key  = 811589153
@@ -32,12 +32,10 @@ def shuffle(data: list[Number]):
 
     length = len(data)
 
-    order = [elem[0] for elem in sorted([(index, elem._original_position) for index, elem in enumerate(data)], key=lambda x: x[1])]
-
-    for elem in order: # the original order of the elements
+    for index, _ in enumerate(data): # the original order of the elements
 
         for number in data: # get current position
-            if number._original_position == elem:
+            if number._original_position == index:
                 i = number._current_position
         
 
@@ -48,12 +46,11 @@ def shuffle(data: list[Number]):
 
 
         if new_position < 0:
-            new_position = new_position + new_position // length
-        if new_position > length:
-            new_position = new_position + new_position // length
+            new_position = new_position + new_position // (length - 1)
+        if new_position >= length:
+            new_position = new_position + new_position // (length - 1)
 
         #new_position = new_position + new_position // length
-       
         new_position = new_position % length
 
         if new_position < i: # move everything from new_position to i up one step
@@ -72,8 +69,13 @@ def shuffle(data: list[Number]):
         data[new_position] = current_element
         data[new_position]._current_position = new_position
 
-    for index, elem in enumerate(data):
-        data[i]._current_position = index
+    # move everything so 0 is at the start of the list
+    while data[0]._value != 0:
+        data.append(data.pop(0))
+
+    # fix current_position
+    for index, _ in enumerate(data):
+        data[index]._current_position = index
             
 
     return data
