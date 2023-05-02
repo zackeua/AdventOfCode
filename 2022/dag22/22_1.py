@@ -1,12 +1,19 @@
 import sys
+from collections import defaultdict
+
+
+class Instruction:
+    def __init__(self, steps: int, turn: str) -> None:
+        self.steps = steps
+        self.direction = turn
 
 class Character:
     def __init__(self, data) -> None:
         self.prev = None
         self.current = self.get_first_position(data[0])
-        self.board = data[:-2]
-        self.instructions = self.set_instructions(data[-1])
+        self.board = set_board(data[:-2])
         self.direction  = 0 # 
+        self.size = (len(data[:-2]), max([len(row) for row in data[:-2]]))
 
     def turn(self, direction: str):
         if direction.lower() == 'r':
@@ -20,23 +27,6 @@ class Character:
         for i, c in enumerate(row):
             if c == '.':
                 return (0, i)
-            
-    def set_instructions(self, row: str):
-        instructions = []
-        steps = ''
-        operations = row + 'M'
-        for c in operations:
-            if not c.isnumeric():
-                instructions.append((int(steps), c))
-                steps = ''
-            else:
-                steps += c
-        
-        return instructions
-
-    def get_instruction(self):
-        for instruction in self.instructions:
-            yield instruction
     
     def get_update(self):
         if self.direction == 0:
@@ -49,7 +39,38 @@ class Character:
             return (-1, 0)
     
     def get_password(self):
+        #print(self.current[0])
+        #print(self.current[1])
+        #print(self.direction)
+
         return 1000 * (self.current[0] + 1) + 4 * (self.current[1] + 1) + self.direction
+
+def compose_update(current_position, update, size, board):
+    #print(current_position, update)
+    while board[current_position] == None:
+        current_position = (0 if current_position[0] >= size[0] else size[0] if current_position[0] < 0 else (current_position[0] + update[0]), 0 if current_position[1] >= size[1] else size[1] if current_position[1] < 0 else (current_position[1] + update[1]))
+    return (0 if current_position[0] >= size[0] else size[0] if current_position[0] < 0 else (current_position[0] + update[0]), 0 if current_position[1] >= size[1] else size[1] if current_position[1] < 0 else (current_position[1] + update[1]))
+
+def set_board(proposed_board: list[list[str]]) -> defaultdict:
+    board = defaultdict(lambda: None)
+    for row_index, row in enumerate(proposed_board):
+        for column_index, element in enumerate(row):
+            if element == '.' or element == '#':
+                board[(row_index, column_index)] = element
+    return board
+
+
+def instructions(row: str) -> list[Instruction]:
+        
+    steps = ''
+    operations = row + 'M'
+    for c in operations:
+        if not c.isnumeric():
+            yield Instruction(int(steps), c)
+            steps = ''
+        else:
+            steps += c
+        
 
 
 def main():
@@ -57,24 +78,25 @@ def main():
     with open(sys.argv[1], 'r') as f:
         data = f.readlines()
         character = Character(data)
-
-        for instruction in character.get_instruction():
+        print(character.current)
+        for instruction in instructions(data[-1]):
             steps = 0
-            current_position = character.current
             update = character.get_update()
-            next_position = current_position
-            next_position = (next_position[0] + update[0], next_position[1] + update[1])
+
+            next_position = compose_update(character.current, update, character.size, character.board)
             
-            while steps < instruction[0] and character.board[next_position[0]][next_position[1]] == '.':
-                character.prev = character.current
-                next_position = (next_position[0] + update[0], next_position[1] + update[1])
-            
+            while steps < instruction.steps and character.board[next_position] != '#':
+                character.prev = next_position
+
+                next_position = compose_update(next_position, update, character.size, character.board)
                 steps += 1
+
             next_position = (next_position[0] - update[0], next_position[1] - update[1])
-            
+
             character.current = next_position
-            character.turn(instruction[1])
+            character.turn(instruction.direction)
             print(character.current)
         print(character.get_password())
+
 if __name__ == '__main__':
     main()
