@@ -47,9 +47,10 @@ class Character:
 
 def compose_update(current_position, update, size, board):
     #print(current_position, update)
+    current_position = (0 if current_position[0] >= size[0] else (size[0] - 1) if current_position[0] < 0 else (current_position[0] + update[0]), 0 if current_position[1] >= size[1] else (size[1] - 2) if current_position[1] < 0 else (current_position[1] + update[1]))
     while board[current_position] == None:
-        current_position = (0 if current_position[0] >= size[0] else size[0] if current_position[0] < 0 else (current_position[0] + update[0]), 0 if current_position[1] >= size[1] else size[1] if current_position[1] < 0 else (current_position[1] + update[1]))
-    return (0 if current_position[0] >= size[0] else size[0] if current_position[0] < 0 else (current_position[0] + update[0]), 0 if current_position[1] >= size[1] else size[1] if current_position[1] < 0 else (current_position[1] + update[1]))
+        current_position = (0 if current_position[0] >= size[0] else (size[0] - 1) if current_position[0] < 0 else (current_position[0] + update[0]), 0 if current_position[1] >= size[1] else (size[1] - 2) if current_position[1] < 0 else (current_position[1] + update[1]))
+    return current_position
 
 def set_board(proposed_board: list[list[str]]) -> defaultdict:
     board = defaultdict(lambda: None)
@@ -96,7 +97,9 @@ def main():
             character.current = next_position
             character.turn(instruction.direction)
             print(character.current)
-        print(character.get_password())
+        answer = character.get_password()
+        assert answer < 115396
+        print(answer)
 
 if __name__ == '__main__':
     main()
