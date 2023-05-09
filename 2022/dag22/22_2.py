@@ -83,6 +83,12 @@ def move(current_state: State, update: tuple[int, int], board: defaultdict, edge
     return next_state
         
 def set_board(proposed_board: list[list[str]]) -> defaultdict:
+
+    RIGHT = 0
+    DOWN = 1
+    LEFT = 2
+    UP = 3
+
     board = defaultdict(lambda: None)
     edge_transition = defaultdict(lambda: None)
     
@@ -143,44 +149,26 @@ def set_board(proposed_board: list[list[str]]) -> defaultdict:
 
 
     for i in range(50):
-        edge_transition[State((100-1, i), 3)] = State((50+i, 50), 0)
-        edge_transition[State((50+i, 50-1), 2)] = State((100, i), 1)
+        edge_transition[State((100-1, i), UP)] = State((50+i, 50), RIGHT)
+        edge_transition[State((50+i, 50-1), LEFT)] = State((100, i), DOWN)
 
-        edge_transition[State((100+i, 0-1), 2)] = State((49-i, 50), 0)
-        edge_transition[State((49-i, 50-1), 2)] = State((100+i, 0), 0)
+        edge_transition[State((100+i, 0-1), LEFT)] = State((49-i, 50), RIGHT)
+        edge_transition[State((49-i, 50-1), LEFT)] = State((100+i, 0), RIGHT)
 
-        edge_transition[State((49+1, 100+i), 1)] = State((50+i, 99), 2)
-        edge_transition[State((50+i, 100), 0)] = State((49, 100+i), 3)
+        edge_transition[State((49+1, 100+i), DOWN)] = State((50+i, 99), LEFT)
+        edge_transition[State((50+i, 99+1), RIGHT)] = State((49, 100+i), UP)
 
-        edge_transition[State((150, 50+i), 1)] = State((150+i, 49), 2)
-        edge_transition[State((150+i, 50), 0)] = State((149, 50+i), 3)
+        edge_transition[State((149+1, 50+i), DOWN)] = State((150+i, 49), LEFT)
+        edge_transition[State((150+i, 49+1), RIGHT)] = State((149, 50+i), UP)
 
-        edge_transition[State((100+i, 100), 0)] = State((49-i, 149), 2)
-        edge_transition[State((49-i, 150), 0)] = State((100+i, 99), 2)
+        edge_transition[State((100+i, 99+1), RIGHT)] = State((49-i, 149), LEFT)
+        edge_transition[State((49-i, 149+1), RIGHT)] = State((100+i, 99), LEFT)
 
-        edge_transition[State((0-1, 50+i), 3)] = State((150+i, 0), 0)
-        edge_transition[State((150+i, 0-1), 2)] = State((0, 50+i), 1)
+        edge_transition[State((0-1, 50+i), UP)] = State((150+i, 0), RIGHT)
+        edge_transition[State((150+i, 0-1), LEFT)] = State((0, 50+i), DOWN)
 
-        edge_transition[State((0-1, 100+i), 3)] = State((200-1, i), 3)
-        edge_transition[State((200, i), 1)] = State((0, 100+i), 1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        edge_transition[State((0-1, 100+i), UP)] = State((199, i), UP)
+        edge_transition[State((199+1, i), DOWN)] = State((0, 100+i), DOWN)
 
     return board, edge_transition
 
@@ -220,6 +208,7 @@ def main():
             print(character.state.position)
         answer = character.get_password()
         assert answer < 21270
+        assert answer < 94299
         print(answer)
 
 if __name__ == '__main__':
