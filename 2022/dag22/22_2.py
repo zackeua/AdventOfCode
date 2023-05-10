@@ -38,6 +38,7 @@ class Character:
     def __init__(self, data) -> None:
         self.state = self.get_first_position(data[0])
         self.board, self.edge_transition = set_board(data[:-2])
+        self.visited = {}
 
     def turn(self, direction: str):
         if direction.lower() == 'r':
@@ -69,6 +70,25 @@ class Character:
         #print(self.state.direction)
 
         return 1000 * (self.state.position[0] + 1) + 4 * (self.state.position[1] + 1) + self.state.direction
+
+    def show_board(self):
+        for i in range(200):
+            for j in range(150):
+                if (i, j) in self.visited:
+                    if self.visited[(i, j)] == 0:
+                        print('>', end='')
+                    elif self.visited[(i, j)] == 1:
+                        print('v', end='')
+                    elif self.visited[(i, j)] == 2:
+                        print('<', end='')
+                    else:
+                        print('^', end='')
+                elif (i, j) in self.board:
+                    print(self.board[(i, j)], end='')
+                else:
+                    print(' ', end='')
+            print()
+        
 
 def move(current_state: State, update: tuple[int, int], board: defaultdict, edge_transition: defaultdict):
 
@@ -192,6 +212,8 @@ def main():
         data = f.readlines()
         character = Character(data)
         print(character.state.position)
+        character.visited[character.state.position] = character.state.direction
+
         for instruction in instructions(data[-1]):
             steps = 0
 
@@ -199,12 +221,13 @@ def main():
                 update = character.get_update()
                 
                 character.state = move(character.state, update, character.board, character.edge_transition)
+                character.visited[character.state.position] = character.state.direction
                 steps += 1
                 print(character.state.position)
 
-
+            print(f'Update: {update}')
+            character.show_board()
             character.turn(instruction.direction)
-            print(f'Update: {update}')      
             print(character.state.position)
         answer = character.get_password()
         assert answer < 21270
