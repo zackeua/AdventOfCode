@@ -56,10 +56,10 @@ class State:
 
 class Blueprint:
     def __init__(self, ore: Collection, clay: Collection, obsidian: Collection, geode: Collection) -> None:
-        self.ore = ore
-        self.clay = clay
-        self.obsidian = obsidian
-        self.geode = geode
+        self.ore = Collection(0, 0, 0, 0) + ore
+        self.clay = Collection(0, 0, 0, 0) + clay
+        self.obsidian = Collection(0, 0, 0, 0) + obsidian
+        self.geode = Collection(0, 0, 0, 0) + geode
 
         self._max_needed = Collection(max([self.ore.ore, self.clay.ore, self.obsidian.ore, self.geode.ore]),
                                       max([self.ore.clay, self.clay.clay, self.obsidian.clay, self.geode.clay]),
@@ -88,16 +88,22 @@ GEODE = Collection(0, 0, 0, 1)
 
 def optimize_blueprint(blueprint: Blueprint, depth: int = 1, state: State = State(ORE, EMPTY), allow_build: Collection = Collection(True, True, True, True), current_best_result: int = 0, visited_nodes: int = 0) -> tuple[int, dict]:
 
-    # -1: get values from current state
+    # 0: get values from current state
     materials = state.materials.__copy__()
     robots = state.robots.__copy__()
 
+    # 1: get new materials (depending on how many robots you currently have) 
 
-    test_materials = materials + robots
+    new_materials = materials + robots
 
-    result = test_materials.geode
+    result = new_materials.geode
 
-    # 0: early return if possible
+
+    # 2: end simulation (recursion) at minute MAX_DEPTH (32)
+    if depth == MAX_DEPTH:
+        return result, state.debug_string, 1 + visited_nodes
+
+    # 3: early return if possible
 
     time_left = max(0, (MAX_DEPTH - depth))
     best_upper_bound = result + robots.geode * time_left + time_left*(time_left+1)/2
@@ -110,33 +116,33 @@ def optimize_blueprint(blueprint: Blueprint, depth: int = 1, state: State = Stat
     if allow_build == Collection(False, False, False, False):
         return result, state.debug_string, 1 + visited_nodes
 
-    # end recursion at minute MAX_DEPTH (32)
-    if depth == MAX_DEPTH:
-        return result, state.debug_string, 1 + visited_nodes
 
-    # 1: get materials repending on how many robots you curently have
-
-
-    # try to build a robot
+    # 4: branch at each possible robot build
     allow_build_nothing_built = allow_build.__copy__()
     test_repr = "" + state.debug_string
     if blueprint.geode <= materials and allow_build.geode:
         test_robots = robots + GEODE
-        tmp_allow_build = allow_build.__copy__()
-        test_state = State(test_robots, test_materials - blueprint.geode, state.debug_string + 'g')
+        tmp_allow_build = Collection(1, 1, 1, 1)
+        tmp_allow_build.obsidian = blueprint.get_max_needed().obsidian > test_robots.obsidian
+        tmp_allow_build.clay = blueprint.get_max_needed().clay > test_robots.clay
+        tmp_allow_build.ore = blueprint.get_max_needed().ore > test_robots.ore and depth < MAX_DEPTH - blueprint.ore.ore # no need to build ore robot if it cant repay itself
+
+        test_state = State(test_robots, new_materials - blueprint.geode, state.debug_string + 'g')
         new_result, new_repr, new_visited_nodes = optimize_blueprint(blueprint, depth + 1, test_state, tmp_allow_build, result, visited_nodes)
         result = max(result, new_result)
         if result == new_result:
             test_repr = new_repr
         visited_nodes = new_visited_nodes
         allow_build_nothing_built.geode = False
-    else: # dont bother trying anything else if you can build a geode robot
+    else: # 5: dont bother trying anything else if you can build a geode robot
 
         if blueprint.obsidian <= materials and allow_build.obsidian:
             test_robots = robots + OBSIDIAN
-            tmp_allow_build = allow_build.__copy__()
+            tmp_allow_build = Collection(1, 1, 1, 1)
             tmp_allow_build.obsidian = blueprint.get_max_needed().obsidian > test_robots.obsidian
-            test_state = State(test_robots, test_materials - blueprint.obsidian, state.debug_string + '*')
+            tmp_allow_build.clay = blueprint.get_max_needed().clay > test_robots.clay
+            tmp_allow_build.ore = blueprint.get_max_needed().ore > test_robots.ore and depth < MAX_DEPTH - blueprint.ore.ore # no need to build ore robot if it cant repay itself
+            test_state = State(test_robots, new_materials - blueprint.obsidian, state.debug_string + '*')
             new_result, new_repr, new_visited_nodes = optimize_blueprint(blueprint, depth + 1, test_state, tmp_allow_build, result, visited_nodes)
             result = max(result, new_result)
             if result == new_result:
@@ -145,10 +151,14 @@ def optimize_blueprint(blueprint: Blueprint, depth: int = 1, state: State = Stat
             allow_build_nothing_built.obsidian = False
 
         if blueprint.clay <= materials and allow_build.clay:
+            #print(depth)
             test_robots = robots + CLAY
-            tmp_allow_build = allow_build.__copy__()
+            tmp_allow_build = Collection(1, 1, 1, 1)
+            tmp_allow_build.obsidian = blueprint.get_max_needed().obsidian > test_robots.obsidian
             tmp_allow_build.clay = blueprint.get_max_needed().clay > test_robots.clay
-            test_state = State(test_robots, test_materials - blueprint.clay, state.debug_string + 'c')
+            tmp_allow_build.ore = blueprint.get_max_needed().ore > test_robots.ore and depth < MAX_DEPTH - blueprint.ore.ore # no need to build ore robot if it cant repay itself
+
+            test_state = State(test_robots, new_materials - blueprint.clay, state.debug_string + 'c')
             new_result, new_repr, new_visited_nodes = optimize_blueprint(blueprint, depth + 1, test_state, tmp_allow_build, result, visited_nodes)
             result = max(result, new_result)
             if result == new_result:
@@ -158,9 +168,11 @@ def optimize_blueprint(blueprint: Blueprint, depth: int = 1, state: State = Stat
 
         if blueprint.ore <= materials and allow_build.ore:
             test_robots = robots + ORE
-            tmp_allow_build = allow_build.__copy__()
+            tmp_allow_build = Collection(1, 1, 1, 1)
             tmp_allow_build.ore = blueprint.get_max_needed().ore > test_robots.ore and depth < MAX_DEPTH - blueprint.ore.ore # no need to build ore robot if it cant repay itself
-            test_state = State(test_robots, test_materials - blueprint.ore, state.debug_string + 'o')
+            tmp_allow_build.obsidian = blueprint.get_max_needed().obsidian > test_robots.obsidian
+            tmp_allow_build.clay = blueprint.get_max_needed().clay > test_robots.clay
+            test_state = State(test_robots, new_materials - blueprint.ore, state.debug_string + 'o')
             new_result, new_repr, new_visited_nodes = optimize_blueprint(blueprint, depth + 1, test_state, tmp_allow_build, result, visited_nodes)
             result = max(result, new_result)
             if result == new_result:
@@ -170,7 +182,7 @@ def optimize_blueprint(blueprint: Blueprint, depth: int = 1, state: State = Stat
 
         # Try skip building robot, i.e. save resources til later
         if not (blueprint <= materials):
-            test_state = State(robots, test_materials, state.debug_string + '.')
+            test_state = State(robots, new_materials, state.debug_string + '.')
             new_result, new_repr, new_visited_nodes = optimize_blueprint(blueprint, depth + 1, test_state, allow_build_nothing_built, result, visited_nodes)
             result = max(result, new_result)
             if result == new_result:
@@ -209,11 +221,11 @@ def main():
     for i, blueprint in enumerate(blueprint_list[:3], start=1):
         t1 = time.time()
         partial_result, result_string, visited_nodes = optimize_blueprint(blueprint, 1)
-        print(blueprint)
-        print(result_string)
-        print('Blueprint result: ', partial_result)
-        print('visited nodes: ', visited_nodes)
-        print('Blueprint time: ', time.time() - t1)
+        #print(blueprint)
+        #print(result_string)
+        #print('Blueprint result: ', partial_result)
+        #print('visited nodes: ', visited_nodes)
+        #print('Blueprint time: ', time.time() - t1)
 
         total *= partial_result
 
