@@ -101,6 +101,10 @@ class Character:
 def simulate(player: Character, boss: Character, min_mana_spent: int = sys.float_info.max, turn: int = 1):
     
     #print('hej')
+    if turn % 2 == 1:
+        player.hit_points -= 1
+        if player.hit_points <= 0:
+            return sys.float_info.max
     player.shield_trigger()
     player.poison_attack(boss)
     player.recharge_trigger()
