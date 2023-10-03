@@ -26,7 +26,7 @@ std::vector<int> parseProgramString(const std::string &programString)
     return result;
 }
 
-void add(const int position, std::vector<int> &program, const int argtype1, const int argtype2, const int argtype3)
+void add(const int position, std::vector<int> &program, const int argtype1, const int argtype2)
 {
     if (program.size() < program[position + 3])
     {
@@ -34,13 +34,12 @@ void add(const int position, std::vector<int> &program, const int argtype1, cons
     }
     int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
     int arg2 = argtype2 != 0 ? position + 2 : program[position + 2];
-    //assert(argtype3 == 0);
-    int arg3 = argtype3 != 0 ? position + 3 : program[position + 3];
+    int arg3 = program[position + 3];
 
     program[arg3] = program[arg1] + program[arg2];
 }
 
-void multiply(const int position, std::vector<int> &program, const int argtype1, const int argtype2, const int argtype3)
+void multiply(const int position, std::vector<int> &program, const int argtype1, const int argtype2)
 {
     if (program.size() < program[position + 3])
     {
@@ -48,8 +47,7 @@ void multiply(const int position, std::vector<int> &program, const int argtype1,
     }
     int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
     int arg2 = argtype2 != 0 ? position + 2 : program[position + 2];
-    //assert(argtype3 == 0);
-    int arg3 = argtype3 != 0 ? position + 3 : program[position + 3];    
+    int arg3 = program[position + 3];    
 
     program[arg3] = program[arg1] * program[arg2];
 }
@@ -59,7 +57,7 @@ void input(const int position, std::vector<int>& program) {
     {
         program.reserve(program[position + 1]);
     }
-    const int INPUT = 1;
+    const int INPUT = 5;
     program[program[position + 1]] = INPUT;
 }
 
@@ -67,6 +65,39 @@ int output(const int position, std::vector<int>& program, const int argtype1) {
     int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
     return program[arg1];
 }
+
+int jumpIfTrue(const int position, std::vector<int>& program, const int argtype1, const int argtype2) {
+    int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
+    int arg2 = argtype2 != 0 ? position + 2 : program[position + 2];
+
+    const int INSTRUCTION_LENGTH = 3;
+    return program[arg1] != 0 ? program[arg2] : position + INSTRUCTION_LENGTH;
+}
+
+int jumpIfFalse(const int position, std::vector<int>& program, const int argtype1, const int argtype2) {
+    int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
+    int arg2 = argtype2 != 0 ? position + 2 : program[position + 2];
+
+    const int INSTRUCTION_LENGTH = 3;
+    return program[arg1] == 0 ? program[arg2] : position + INSTRUCTION_LENGTH;
+}
+
+void lessThan(const int position, std::vector<int>& program, const int argtype1, const int argtype2) {
+    int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
+    int arg2 = argtype2 != 0 ? position + 2 : program[position + 2];
+    int arg3 = program[position + 3];
+
+    program[arg3] = static_cast<int>(program[arg1] < program[arg2]);
+}
+
+void equals(const int position, std::vector<int>& program, const int argtype1, const int argtype2) {
+    int arg1 = argtype1 != 0 ? position + 1 : program[position + 1];
+    int arg2 = argtype2 != 0 ? position + 2 : program[position + 2];
+    int arg3 = program[position + 3];
+
+    program[arg3] = static_cast<int>(program[arg1] == program[arg2]);
+}
+
 
 std::tuple<int, int, int, int> parseOperation(const int opcode)
 {
@@ -78,6 +109,7 @@ std::tuple<int, int, int, int> parseOperation(const int opcode)
     return {op, argmode1, argmode2, argmode3};
 }
 
+
 std::vector<int> run(std::vector<int> &program)
 {
     std::vector<int> outputs;
@@ -85,15 +117,14 @@ std::vector<int> run(std::vector<int> &program)
     while (true)
     {
         auto [op, argtype1, argtype2, argtype3] = parseOperation(program[i]);
-        
         switch (op)
         {
         case 1:
-            add(i, program, argtype1, argtype2, argtype3);
+            add(i, program, argtype1, argtype2);
             i += 4;
             break;
         case 2:
-            multiply(i, program, argtype1, argtype2, argtype3);
+            multiply(i, program, argtype1, argtype2);
             i += 4;
             break;
         case 3:
@@ -103,6 +134,20 @@ std::vector<int> run(std::vector<int> &program)
         case 4:
             outputs.push_back(output(i, program, argtype1));
             i += 2;
+            break;
+        case 5:
+            i = jumpIfTrue(i, program, argtype1, argtype2);
+            break;
+        case 6:
+            i = jumpIfFalse(i, program, argtype1, argtype2);
+            break;
+        case 7:
+            lessThan(i, program, argtype1, argtype2);
+            i += 4;
+            break;
+        case 8:
+            equals(i, program, argtype1, argtype2);
+            i += 4;
             break;
         case 99:
         default:
@@ -141,8 +186,6 @@ int main(int argc, char const *argv[])
     {
         std::cout << i << std::endl;
     }
-    
-
 
     return 0;
 }
