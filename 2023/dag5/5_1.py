@@ -1,23 +1,21 @@
 import sys
 
-seed_to_soil_map = {}
-soil_to_fertilizer_map = {}
-fertilizer_to_water_map = {}
-water_to_light_map = {}
-light_to_temperature_map = {}
-temperature_to_humidity_map = {}
-humidity_to_location_map = {}
+seed_to_soil_map = []
+soil_to_fertilizer_map = []
+fertilizer_to_water_map = []
+water_to_light_map = []
+light_to_temperature_map = []
+temperature_to_humidity_map = []
+humidity_to_location_map = []
 
 
-def parse_dict(line_number, data):
-    d = {}
+def parse_mapping(line_number, data):
+    d = []
     line_number += 1
     while line_number < len(data) and data[line_number] != '':
         line = data[line_number]
-        dest_start, src_start, range_len = list(map(int, line.split()))
-        for i, num in enumerate(range(src_start, src_start + range_len)):
-            d[num] = dest_start + i
-
+        dest_start, src_start, range_len = tuple(map(int, line.split()))
+        d.append((dest_start, src_start, range_len))
         line_number += 1
     return d, line_number
 
@@ -44,32 +42,32 @@ def main():
                 tmp = line.split(': ')[1]
                 seeds.extend(list(map(int, tmp.split())))
             if 'seed-to-soil' in line:
-                seed_to_soil_map, row = parse_dict(row, data)
+                seed_to_soil_map, row = parse_mapping(row, data)
             elif 'soil-to-fertilizer' in line:
-                soil_to_fertilizer_map, row = parse_dict(row, data)
+                soil_to_fertilizer_map, row = parse_mapping(row, data)
             elif 'fertilizer-to-water' in line:
-                fertilizer_to_water_map, row = parse_dict(row, data)
+                fertilizer_to_water_map, row = parse_mapping(row, data)
             elif 'water-to-light' in line:
-                water_to_light_map, row = parse_dict(row, data)
+                water_to_light_map, row = parse_mapping(row, data)
             elif 'light-to-temperature' in line:
-                light_to_temperature_map, row = parse_dict(row, data)
+                light_to_temperature_map, row = parse_mapping(row, data)
             elif 'temperature-to-humidity' in line:
-                temperature_to_humidity_map, row = parse_dict(row, data)
+                temperature_to_humidity_map, row = parse_mapping(row, data)
             elif 'humidity-to-location' in line:
-                humidity_to_location_map, row  = parse_dict(row, data)
+                humidity_to_location_map, row  = parse_mapping(row, data)
             row += 1
         
-        print(seeds)
+        #print(seeds)
         locations = list(map(seed_to_location, seeds))
-        print(locations)
+        #print(locations)
         print(min(locations))
 
 
 def apply_map(source, mapping):
-    if source in mapping:
-        return mapping[source]
-    else:
-        return source
+    for mapping_range in mapping:
+        if mapping_range[1] <= source < mapping_range[1] + mapping_range[2]:
+            return  mapping_range[0] + source - mapping_range[1]
+    return source
 
 def seed_to_location(seed):
     global seed_to_soil_map
