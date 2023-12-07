@@ -1,18 +1,21 @@
 import sys
 
+
 class Hand:
     def __init__(self, cards, bid) -> None:
-        self.cards:str = cards
-        self.bid = int(bid) 
-        #print(self.get_val())
+        self.cards: str = cards
+        self.bid = int(bid)
+        # print(self.get_val())
 
     def __repr__(self) -> str:
         return f'({self.cards}, {self.bid})'
 
     def five_of_a_kind(self) -> bool:
         return self.cards.count(self.cards[0]) == 5
+
     def four_of_a_kind(self) -> bool:
-        return self.cards.count(self.cards[0]) == 4 or self.cards.count(self.cards[1]) == 4
+        return self.cards.count(self.cards[0]) == 4 or \
+            self.cards.count(self.cards[1]) == 4
 
     def full_house(self) -> bool:
         pair = False
@@ -39,9 +42,9 @@ class Hand:
 
         for i in range(5):
             if self.cards.count(self.cards[i]) == 2:
-                if first_pair == None:
+                if first_pair is None:
                     first_pair = self.cards[i]
-                elif second_pair == None and  first_pair != self.cards[i]:
+                elif second_pair is None and first_pair != self.cards[i]:
                     second_pair = self.cards[i]
         return first_pair is not None and second_pair is not None
 
@@ -52,8 +55,6 @@ class Hand:
             else:
                 return False
         return True
-    
-
 
     def get_val(self):
 
@@ -71,10 +72,10 @@ class Hand:
             return (1, hand_to_num(self.cards))
         elif self.high_card():
             return (0, hand_to_num(self.cards))
-        
         print(self.__repr__())
-        assert False # sgould not be here
+        assert False  # sgould not be here
         return (0, 0)
+
 
 def hand_to_num(hand):
     total = 0
@@ -94,6 +95,7 @@ def hand_to_num(hand):
             total += int(val)
     return total
 
+
 def main():
 
     with open(sys.argv[1], 'r') as f:
@@ -101,7 +103,7 @@ def main():
         data = [Hand(*line.strip().split()) for line in data]
 
         hands = data
-        #print(hands)
+        # print(hands)
         hands.sort(key=lambda x: x.get_val())
 
         total = 0
