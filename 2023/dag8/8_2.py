@@ -1,14 +1,24 @@
 import sys
-from sympy.ntheory.modular import crt 
 
+from math import lcm
+
+
+def reduce_pairwise_coprime(numbers):
+    gcd_value = numbers[0]
+    for num in numbers[1:]:
+        gcd_value = gcd(gcd_value, num)
+
+    reduced_numbers = [num // gcd_value for num in numbers] + [gcd_value]
+    return reduced_numbers
 
 
 def is_finished(data):
     for element in data:
         if element is None:
             return False
-    
+
     return True
+
 
 def main():
     with open(sys.argv[1], 'r') as f:
@@ -24,9 +34,9 @@ def main():
             next_element_map[current] = tmp
             if current[2] == 'A':
                 current_elements.append(current)
-        
+
         steps = 0
-        
+
         cycles = [None] * len(current_elements)
 
         while not is_finished(cycles):
@@ -34,19 +44,19 @@ def main():
                 next_direction = moves[steps % len(moves)]
                 current_elements[i] = next_element_map[elem][next_direction]
                 if current_elements[i][2] == 'Z':
-                    print(i, steps+1)
+                    # print(i, steps+1)
                     if cycles[i] is None:
                         cycles[i] = steps+1
 
             steps += 1
 
-        total_product = 1
-        for c in cycles:
-            total_product *= c
-        moduli = [total_product // elem for elem in cycles]
+        answer = lcm(*cycles)
 
-        
-        print(crt(moduli, [0]*len(moduli)))
+        print(answer)
+
+        for c in cycles:
+            # print(answer % c)
+            assert answer % c == 0
 
 
 if __name__ == '__main__':
