@@ -9,12 +9,12 @@ OPERATIONAL = '.'
 UNKNOWN = '?'
 
 
-# @functools.lru_cache()
+@functools.lru_cache()
 def matches(text: str, pattern: list[int], prev='.', debug_str=''):
     if len(pattern) == 0:
         if DAMAGED not in text:
             assert debug_str != ''
-            print(debug_str)
+            # print(debug_str)
             return 1
         return 0
     if len(text) == 0:
@@ -43,16 +43,18 @@ def main():
         data = f.readlines()
         data = [line.strip().split() for line in data]
         total = 0
+        repetitions = 5
         for springs, pattern in tqdm.tqdm(data):
             local = 0
             pattern = tuple(map(int, pattern.split(',')))
-            extended_springs = '?'.join([springs])
-            local = matches(extended_springs, pattern)
+            extended_springs = '?'.join([springs]*repetitions)
+            local = matches(extended_springs, pattern*repetitions)
             total += local
             print(f'{springs}, {pattern} : {local}')
         print(total)
         assert total < 203284796184157
         assert total < 1907721526566707227243
+
 
 if __name__ == '__main__':
     main()
