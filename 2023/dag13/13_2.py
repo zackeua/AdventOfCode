@@ -1,24 +1,25 @@
 import sys
 
 
-def find_col_reflections(grid: list[str]):
-    for i in range(len(grid)):
+def find_col_reflections(grid: list[str], old=-1):
+    for i in range(len(grid)-1):
         offset = i+1
         upper = grid[:offset]
-        length = min(2*offset, len(grid))
-        lower = grid[offset:length]
+        lower = grid[offset:2*offset]
         if len(upper) < len(lower):
             lower = lower[::-1]
         else:
             upper = upper[::-1]
         # print('Lower: ', lower)
         # print('Upper: ', upper)
-        matching = len(lower) and len(upper)
+        matching = len(lower) > 0 and len(upper) > 0
         for u, l in zip(upper, lower):
             if u != l:
                 matching = False
-        if matching:
+                break
+        if matching and len(upper) != old:
             return len(upper)
+    # print('No match')
     return None
 
 
@@ -30,9 +31,9 @@ def flip_axes(grid):
     return data
 
 
-def find_row_reflections(grid: list[str]):
+def find_row_reflections(grid: list[str], old=-1):
     data = flip_axes(grid)
-    cols = find_col_reflections(data)
+    cols = find_col_reflections(data, old)
     return cols
 
 
@@ -40,7 +41,7 @@ def find_reflections(data: list[str]):
     mapping = {'.': '#', '#': '.'}
     old_rows = find_row_reflections(data)
     old_cols = find_col_reflections(data)
-    print('Old:', old_cols, old_rows)
+    # print('Old:', old_cols, old_rows)
     for r, row in enumerate(data):
         for c, elem in enumerate(row):
             grid = data.copy()
@@ -48,19 +49,15 @@ def find_reflections(data: list[str]):
             assert len(grid[r]) == len(data[r])
             # print(data)
             # print(grid)
-            rows = find_row_reflections(grid)
-            cols = find_col_reflections(grid)
-            if rows == old_rows and cols == old_cols:
-                continue
+            rows = find_row_reflections(grid, old_rows)
+            cols = find_col_reflections(grid, old_cols)
 
             if rows is not None or cols is not None:
-                print('New: ', cols, rows)
-                if cols is None or cols == len(data) or cols == old_cols:
-                    cols = 0
-                if rows is None or rows == len(data[0]) or rows == old_rows:
-                    rows = 0
-                return cols, rows
-    return cols or 0, rows or 0
+                #for p in grid:
+                #    print(p)
+                #print('New: ', cols, rows)
+                return cols, rows, old_cols, old_rows
+    return cols, rows, old_cols, old_rows
 
 def main():
 
@@ -81,10 +78,12 @@ def main():
 
         total = 0
         for grid in all_grids:
-            cols, rows = find_reflections(grid)
+            cols, rows, old_cols, old_rows = find_reflections(grid)
             # for line in grid:
             #    # print(line)
-            print(cols, rows, len(grid), len(grid[0]))
+            cols = cols or 0
+            rows = rows or 0
+            # print(cols, rows, old_cols, old_rows, len(grid), len(grid[0]))
             total += cols*100 + rows
         print(total)
         assert total != 17076
