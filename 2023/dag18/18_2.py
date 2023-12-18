@@ -10,15 +10,18 @@ def dig(data):
     max_y = 0
     boundary = []
     corners = []
-    for direction, length, _ in data:
-        for i in range(int(length)):
-            if direction == 'R':
+    for _, _, instruction in data:
+        instruction = instruction[1:-1]
+        direction = instruction[-1]
+        length = int(instruction[1:-1], 16)
+        for i in range(length):
+            if direction == '0':
                 current = (current[0] + 1, current[1])
-            elif direction == 'L':
+            elif direction == '2':
                 current = (current[0] - 1, current[1])
-            elif direction == 'U':
+            elif direction == '1':
                 current = (current[0], current[1] + 1)
-            elif direction == 'D':
+            elif direction == '3':
                 current = (current[0], current[1] - 1)
 
             if current[0] < min_x:
@@ -60,7 +63,9 @@ def main():
         data = f.readlines()
         data = [line.strip() for line in data]
         data = [line.split(' ') for line in data]
+        
         info = dig(data)
+        
         # draw(info[0], info[1], info[2], info[3], info[4])
         area = calculate_area(info[0], info[1], info[2], info[3], info[4])
 
