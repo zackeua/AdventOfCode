@@ -42,7 +42,7 @@ class Node:
                     distance=self.distance + other.distance)
 
     def __lt__(self, other):
-        return (self.distance, self.x, self.y, self.current_x + self.current_y) < (other.distance, other.x, other.y, other.current_x + other.current_y)
+        return (self.distance, self.x + self.y, self.current_x + self.current_y) < (other.distance, other.x + other.y, other.current_x + other.current_y)
 
     def __eq__(self, other):
         return (self.x, self.y, self.current_x, self.current_y, self.distance) == (other.x, other.y, other.current_x, other.current_y, other.distance)
