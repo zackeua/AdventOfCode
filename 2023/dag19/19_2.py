@@ -1,82 +1,37 @@
 import sys
 
 
-class SingleRange:
-    def __init__(self, start=0, end=0):
-        self.start = start
-        self.end = end
+def generate_minizinc_file(workflows):
+    #with open('minizinc_file.mzn', 'w') as f:
+    with sys.stdout as f:
+        print('include "globals.mzn";', file=f)
+        print('var 1..4000: x;', file=f)
+        print('var 1..4000: m;', file=f)
+        print('var 1..4000: a;', file=f)
+        print('var 1..4000: s;', file=f)
+   
+        current_workflow = 'in'
+        for rule in workflows[current_workflow]:
+            
+            cond, else_case, should_replace = get_condition(rule)
+            print(cond, else_case, should_replace)
+            if should_replace:
 
-    def __add__(self, other):
-        # if ranges overlap, return the range that covers both
-        if self.start <= other.start and self.end <= other.end:
-            return SingleRange(self.start, other.end)
-        if other.start <= self.start and other.end <= self.end:
-            return SingleRange(other.start, self.end)
-        # if ranges don't overlap, return None
-        if self.end <= other.start or other.end <= self.start:
-            return None
-        if self.start <= other.start and other.end <= self.end:
-            return self
-        if other.start <= self.start and self.end <= other.end:
-            return other
+                else_case = else_case.replace('x', 'x')
+            minizinc_if_statement = f'if {cond} then true else {else_case} endif;'
+            print(minizinc_if_statement, file=f)
 
-
-class MyRange:
-
-    def __init__(self, ranges=[]):
-        self.ranges = ranges
-
-    def __add__(self, other):
-        self.ranges.extend(other.ranges)
-        new_ranges = []
-        while self.ranges != new_ranges:
-            new_ranges = []
-            for i in range(len(self.ranges)):
-                for j in range(i+1, len(self.ranges)):
-                    new_range = self.ranges[i] + self.ranges[j]
-                    if new_range is not None:
-                        new_ranges.append(new_range)
-                    else:
-                        new_ranges.append(self.ranges[i])
-                        new_ranges.append(self.ranges[j])
-            self.ranges = [tmp_range for tmp_range in new_ranges]
-
-
-    def apply_filter(self, filter):
-        new_ranges = []
-        for tmp_range in self.ranges:
-            if filter(tmp_range):
-                new_ranges.append(tmp_range)
-        self.ranges = new_ranges
-
-def check_rule(expression, x, m, a, s, parts):
+def get_condition(expression):
     expression = expression.split(':')
     if len(expression) == 1: # accept or reject
-        return expression[0]
-    if eval(expression[0]): # if condition is true
-        return expression[1]
-    return None # if condition is false
-
-
-def forward_sets(current_workflow, part, all_workflows):
-
-    ranges = {x: MyRange(), m: MyRange(), a: MyRange(), s: MyRange()}
-    for rule in workflows[workflow_name]:
-        status, allow_range, complement_range = check_rule(rule, **part)
-        if status is None: # if current condition is not met, continue wth complement range
-            continue
-        elif 'R' in status:
-            break
-        elif 'A' in status:
-            total += sum(part.values())
-            break
+        if expression[0] == 'A':
+            return 'true', 'false', False
+        elif expression[0] == 'R':
+            return 'false', 'true', False
         else:
-            workflow_name = status
-            ranges = forward_sets(workflow_name, part, all_workflows)
-            break
+            return expression[0], 'false', True
+    return expression[0], expression[1], True
 
-
-    return ranges
 
 def main():
     with open(sys.argv[1], 'r') as f:
@@ -107,12 +62,7 @@ def main():
                     part[key] = int(value)
                 parts.append(part)
 
-        total = 0
-
-        part = {'x': range(1, 4001), 'm': range(1, 4001), 'a': range(1, 4001), 's': range(1, 4001)}
-        current_workflow = 'in'
-        forward_sets(workflow_name, part, workflows)
-        print(total)
+    generate_minizinc_file(workflows)
 
 
 if __name__ == '__main__':
