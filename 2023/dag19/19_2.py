@@ -1,36 +1,61 @@
 import sys
+from minizinc import Instance, Model, Solver
 
 
-def generate_minizinc_file(workflows):
-    #with open('minizinc_file.mzn', 'w') as f:
-    with sys.stdout as f:
-        print('include "globals.mzn";', file=f)
-        print('var 1..4000: x;', file=f)
-        print('var 1..4000: m;', file=f)
-        print('var 1..4000: a;', file=f)
-        print('var 1..4000: s;', file=f)
+def generate_minizinc_constraint(workflows):
    
-        current_workflow = 'in'
-        for rule in workflows[current_workflow]:
-            
-            cond, else_case, should_replace = get_condition(rule)
-            print(cond, else_case, should_replace)
-            if should_replace:
+    current_workflow = 'in'
+    for rule in workflows[current_workflow]:
+        cond, true_case, false_case = get_condition(rule)
+        print(cond, true_case, false_case)
+        minizinc_if_statement = f'if {cond} then {true_case} else {false_case} endif;'
+        
 
-                else_case = else_case.replace('x', 'x')
-            minizinc_if_statement = f'if {cond} then true else {else_case} endif;'
-            print(minizinc_if_statement, file=f)
-
-def get_condition(expression):
+def minizinc_constraint_expression(expression):
     expression = expression.split(':')
     if len(expression) == 1: # accept or reject
         if expression[0] == 'A':
-            return 'true', 'false', False
+            return 'true', 'true'
         elif expression[0] == 'R':
-            return 'false', 'true', False
+            return 'false', 'false'
         else:
             return expression[0], 'false', True
     return expression[0], expression[1], True
+
+"""
+
+def solve(workflows):
+    gecode = Solver.lookup("gecode")
+    model = Model()
+    
+    # add variables
+    model.add_string("""
+    var 1..100: x;
+    var 1..100: m;
+    var 1..100: a;
+    var 1..100: s;
+    """)
+
+
+    
+    # add constraints
+    model.add_string("""
+    constraint x = 1;
+    constraint m = 2;
+    constraint a = 3;
+    constraint s = 4;
+    """)
+
+    # add objective
+    model.add_string("""
+    solve satisfy; 
+    """)
+    instance = Instance(gecode, model)
+
+    # find all possible combinations of parts
+    result = instance.solve(all_solutions=True)
+    print(len(result))
+    
 
 
 def main():
@@ -61,8 +86,7 @@ def main():
                     key, value = rating.split('=')
                     part[key] = int(value)
                 parts.append(part)
-
-    generate_minizinc_file(workflows)
+    solve(workflows)
 
 
 if __name__ == '__main__':
