@@ -10,13 +10,17 @@ class Node:
     y: int = 0
     current_x: int = 0
     current_y: int = 0
+    x_max: int = 0
+    y_max: int = 0
 
-    def __init__(self, x=0, y=0, current_x=0, current_y=0, distance=0):
+    def __init__(self, x=0, y=0, current_x=0, current_y=0, distance=0, x_max=0, y_max=0):
         self.x = x
         self.y = y
         self.current_x = current_x
         self.current_y = current_y
         self.distance = distance
+        self.x_max
+        self.y_max
 
     def __add__(self, other):
         next_x = self.x + other.x
@@ -39,25 +43,26 @@ class Node:
                     y=next_y,
                     current_x=c_x,
                     current_y=c_y,
-                    distance=self.distance + other.distance)
+                    distance=self.distance + other.distance, x_max=self.x_max, y_max=self.y_max)
 
     def __lt__(self, other):
-        return (self.distance, self.x + self.y, self.current_x + self.current_y) < (other.distance, other.x + other.y, other.current_x + other.current_y)
+        return (self.distance - self.x - self.y) < (other.distance - other.x - other.y)
 
     def __eq__(self, other):
-        return (self.x, self.y, self.current_x, self.current_y, self.distance) == (other.x, other.y, other.current_x, other.current_y, other.distance)
+        return (self.x, self.y, self.current_x, self.current_y) == (other.x, other.y, other.current_x, other.current_y)
 
     def __hash__(self):
         return hash((self.x, self.y, self.current_x, self.current_y))
 
+
 def print_history(history, node, graph):
-    
+
     nodes = []
     nodes.append(node)
     while node in history:
         node = history[node]
         nodes.append(node)
-    
+
     for x, row in enumerate(graph):
         for y, elem in enumerate(row):
             printed = False
@@ -71,18 +76,16 @@ def print_history(history, node, graph):
         print()
 
 
-
-
-def get_neighbors(graph, node):
+def get_neighbors(graph, node, x_max, y_max):
     up_weight = graph[node.x - 1][node.y] if node.x - 1 >= 0 else sys.float_info.max
     down_weight = graph[node.x + 1][node.y] if node.x + 1 < len(graph) else sys.float_info.max
     left_weight = graph[node.x][node.y - 1] if node.y - 1 >= 0 else sys.float_info.max
     right_weight = graph[node.x][node.y + 1] if node.y + 1 < len(graph[0]) else sys.float_info.max
 
-    UP = node + Node(x=-1, y=0, distance=up_weight)
-    DOWN = node + Node(x=1, y=0, distance=down_weight)
-    LEFT = node + Node(x=0, y=-1, distance=left_weight)
-    RIGHT = node + Node(x=0, y=1, distance=right_weight)
+    UP = node + Node(x=-1, y=0, distance=up_weight, x_max=x_max, y_max=y_max)
+    DOWN = node + Node(x=1, y=0, distance=down_weight, x_max=x_max, y_max=y_max)
+    LEFT = node + Node(x=0, y=-1, distance=left_weight, x_max=x_max, y_max=y_max)
+    RIGHT = node + Node(x=0, y=1, distance=right_weight, x_max=x_max, y_max=y_max)
 
     FURTHEST_UP = 0
     FURTHEST_DOWN = len(graph) - 1
@@ -204,7 +207,7 @@ def get_neighbors(graph, node):
 
 
 def dijkstra(graph, start, end):
-    # history = {}
+    history = {}
     start_node = Node(x=start[0], y=start[1])
     end_node = Node(x=end[0], y=end[1])
     to_consider = []
@@ -216,19 +219,19 @@ def dijkstra(graph, start, end):
     while len(to_consider) > 0:
         current_node = heapq.heappop(to_consider)
         if current_node.x == end_node.x and current_node.y == end_node.y:
-            # print_history(history, current_node, graph)
+            print_history(history, current_node, graph)
             return current_node.distance
 
-        in_visited = False
-        for node in visited:
-            if node == current_node:
-                in_visited = True
-                break
-        if in_visited:
-            continue
+        # in_visited = False
+        # for node in visited:
+        #     if node == current_node:
+        #         in_visited = True
+        #         break
+        # if in_visited:
+        #     continue
         visited.append(current_node)
         # print(current_node)
-        neighbors = get_neighbors(graph, current_node)
+        neighbors = get_neighbors(graph, current_node, len(graph) - 1, len(graph[0]) - 1)
         """
         if Node(distance=57, x=12, y=1, current_x=0, current_y=-1) in neighbors:
             print('Found it!')
@@ -268,8 +271,15 @@ def dijkstra(graph, start, end):
         # print(current_node)
         # input()
         for neighbor in neighbors:
+            in_visited = False
+            for node in visited:
+                if node == neighbor:
+                    in_visited = True
+                    break
+            if in_visited:
+                continue
             heapq.heappush(to_consider, neighbor)
-            # history[neighbor] = current_node
+            history[neighbor] = current_node
 
 
 def main():
