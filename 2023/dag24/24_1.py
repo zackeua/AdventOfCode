@@ -10,8 +10,8 @@ def determinant(point1, point2):
 
 
 def intersects(point1, direction1, point2, direction2):
-    print(f'Hailstone A: {point2} @ {direction2}')
-    print(f'Hailstone B: {point1} @ {direction1}')
+    # print(f'Hailstone A: {point2} @ {direction2}')
+    # print(f'Hailstone B: {point1} @ {direction1}')
 
     point1_start = point1
     point1_end = [point1[0] + direction1[0], point1[1] + direction1[1]]
@@ -83,7 +83,7 @@ def main():
             for j in range(i):
                 point2, direction2 = data[j]
                 valid, x, y = intersects(point, direction, point2, direction2)
-                print()
+                # print()
                 if valid:
                     total += 1
         print(total)
