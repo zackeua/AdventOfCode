@@ -1,73 +1,72 @@
 import sys
-import heapq
-
+from copy import deepcopy
 
 def get_neighbors(graph, node, visited):
     neighbors = []
 
-    if node[0] != 0:
+    #print(graph[node[0]][node[1]], node[0] , node[1], visited)
+    #input()
+    if graph[node[0] - 1][node[1]] in '.^' and (node[0] - 1, node[1]) not in visited:
+        neighbors.append((node[0] - 1, node[1]))
 
-        if graph[node[0] - 1][node[1]] in '.^' and (node[0] - 1, node[1]) not in visited:
-            local_visited = visited
-            if graph[node[0] - 1][node[1]] == '^':
-                local_visited = visited.copy()
-            neighbors.append(((node[0] - 1, node[1]), local_visited))
+    if graph[node[0] + 1][node[1]] in '.v' and (node[0] + 1, node[1]) not in visited:
+        neighbors.append((node[0] + 1, node[1]))
 
-        if graph[node[0] + 1][node[1]] in '.v' and (node[0] + 1, node[1]) not in visited:
-            local_visited = visited
-            if graph[node[0] + 1][node[1]] == 'v':
-                local_visited = visited.copy()
-            neighbors.append(((node[0] + 1, node[1]), local_visited))
+    if graph[node[0]][node[1] - 1] in '.<' and (node[0], node[1] - 1) not in visited:
+        neighbors.append((node[0], node[1] - 1))
 
-        if graph[node[0]][node[1] - 1] in '.<' and (node[0], node[1] - 1) not in visited:
-            local_visited = visited
-            if graph[node[0]][node[1] - 1] == '<':
-                local_visited = visited.copy()
-            neighbors.append(((node[0], node[1] - 1), local_visited))
-
-        if graph[node[0]][node[1] + 1] in '.>' and (node[0], node[1] + 1) not in visited:
-            local_visited = visited
-            if graph[node[0]][node[1] + 1] == '>':
-                local_visited = visited.copy()
-            neighbors.append(((node[0], node[1] + 1), local_visited))
-    else:
-        neighbors.append((node[0] + 1, node[1], visited))
+    if graph[node[0]][node[1] + 1] in '.>' and (node[0], node[1] + 1) not in visited:
+        neighbors.append((node[0], node[1] + 1)) 
 
     return neighbors
 
+def dfs(graph, start, end, visited):
+    distance = 0
+    local_visited = deepcopy(visited)
+    neighbor = start
+    local_visited.add(start)
+    while neighbor != end:
+        neighbors = get_neighbors(graph, neighbor, local_visited)
+        if len(neighbors) == 0:
+            print('no neighbors', neighbor, end)
+            return 0, local_visited
+        elif len(neighbors) == 1 and neighbors[0] == end:
+            return len(local_visited), local_visited
+        elif len(neighbors) == 1:
+            local_visited.add(neighbors[0])
+            neighbor = neighbors[0]
+        else:
+            best_distance = 0
+            local_result = deepcopy(local_visited)
+            for neighbor in neighbors:
+                tmp_visited = deepcopy(local_visited)
+                tmp_visited.add(neighbor)
+                tmp_dist, tmp_visited = dfs(graph, neighbor, end, tmp_visited)
+                # show_history(graph, tmp_visited, start, end)
+                # print(tmp_dist, neighbor, neighbors, distance)
+                # input()
+                if tmp_dist > best_distance:
+                    best_distance = tmp_dist
+                    local_result = deepcopy(tmp_visited)
 
-def dijkstra(graph, start, end):
-    history = {}
-    to_visit = []
-    visited = set()
-    heapq.heappush(to_visit, (0, ((start[0], start[1]), visited)))
-    while to_visit != []:
-        cost, node = heapq.heappop(to_visit)
+            if len(local_result) > len(local_visited):
+                local_visited = deepcopy(local_result)
+            return len(local_result), local_visited
 
-        if node in visited:
-            continue
-        print(node)
-        if node[:2] == end:
-            return -cost, history
-        visited.add(node)
-        neighbors = get_neighbors(graph, node[0], node[1])
-        print(node, neighbors)
-        for neighbor in neighbors:
-            if neighbor not in visited:
-                history[(neighbor[0], neighbor[1])] = (node[0], node[1])
-                heapq.heappush(to_visit, (cost - 1, neighbor))
-
+        
+         
+    return len(local_visited), local_visited
 
 def show_history(graph, history, start, end):
 
-    current = end
-    while current != start[:2]:
-        graph[current[0]][current[1]] = 'O'
-        current = history[current]
-    graph[current[0]][current[1]] = 'O'
-    for line in graph:
-        print(line)
-
+    for i,line in enumerate(graph):
+        for j, char in enumerate(line):
+            if (i,j) in history:
+                print('X', end='')
+            else:
+                print(char, end='')
+        print()
+    print()
 
 def main():
 
@@ -76,12 +75,15 @@ def main():
         data = [x.strip() for x in data]
         start_x = data[0].find('.')
         end_x = data[-1].find('.')
-        start = (0, start_x, -1, start_x)
+        visited = set()
+        visited.add((0, start_x))
+        start = (1, start_x)
         end = (len(data) - 1, end_x)
-        for line in data:
-            print(line)
-        print(start, end)
-        result, history = dijkstra(data, start, end)
+        # for line in data:
+        #     print(line)
+        # print(start, end)
+        result, visited = dfs(data, start, end, visited)
+        # show_history(data, visited, start, end)
         print(result)
 
         assert result > 1798
