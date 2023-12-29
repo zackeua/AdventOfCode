@@ -82,18 +82,12 @@ def determine_supports(blocks):
 def determine_safe_to_remove(blocks):
     total = 0
     for block in blocks:
-        count = 0
-        supports_none = True
-        for other in blocks:
-            if block.supports(other):
-                supports_none = False
-                if len(other.supported_by) > 1:
-                    count += 1
-        # print(chr(ord('A') + block.index),
-        #       list(map(lambda x: chr(ord('A') + x), block.supported_by)),
-        #       list(map(lambda x: chr(ord('A') + x), block.supporting)),
-        #       count or (1 if supports_none else 0))
-        if count >= 1 or supports_none:
+        safe_to_remove = True
+        for other in block.supporting:
+            if len(blocks[other].supported_by) == 1:
+                safe_to_remove = False
+                break
+        if safe_to_remove:
             total += 1
     return total
 
@@ -107,8 +101,8 @@ def fall_down(blocks):
                 final = True
 
             if not final:
-                for other in range(max(0, i-100), i):
-                    if blocks[other].supports(block):
+                for other in range(i):
+                    if blocks[other].max_corner.z < block.min_corner.z and blocks[other].supports(block):
                         final = True
                         break
             if final:
@@ -131,6 +125,10 @@ def main():
         print('Sorted blocks')
         for block in blocks:
             print(block)
+
+        fall_down(blocks)
+
+        blocks = sorted(blocks)
 
         fall_down(blocks)
 
