@@ -1,5 +1,40 @@
 import sys
 
+class Graph:
+
+    def __init__(self):
+        self._ingoing_edges = {}
+        self._outgoing_edges = {}
+        self._nodes = []
+
+    def add_edge(self, f, to):
+        if f not in self._nodes:
+            self._nodes.append(f)
+
+        if f not in self._outgoing_edges:
+            self._outgoing_edges[f] = []
+        self._outgoing_edges[f].append(to)
+
+        if to not in self._nodes:
+            self._nodes.append(to)
+        
+        if to not in self._ingoing_edges:
+            self._ingoing_edges[to] = []
+        self._ingoing_edges[to].append(f)
+
+    def get_nodes(self):
+        return self._nodes
+
+    def get_parents(self, node):
+        return self._ingoing_edges.get(node, [])
+
+    def get_children(self, node):
+        return self._outgoing_edges.get(node, [])
+
+
+
+
+
 
 class Corner:
 
@@ -71,12 +106,13 @@ class Block:
 
 
 def determine_supports(blocks):
+    graph = Graph()
     for i in range(len(blocks)):
         for j in range(len(blocks)):
             # print(chr(ord('A') + i), chr(ord('A') + j), blocks[i].supports(blocks[j]))
             if blocks[i].supports(blocks[j]):
-                blocks[j].supported_by.append(blocks[i].index)
-                blocks[i].supporting.append(blocks[j].index)
+                graph.add_edge(i, j)
+    return graph
 
 
 def determine_safe_to_remove(blocks):
@@ -134,8 +170,13 @@ def main():
 
         blocks = sorted(blocks)
 
-        determine_supports(blocks)
-        total = determine_safe_to_remove(blocks)
+        graph = determine_supports(blocks)
+
+        total = 0
+        for n in graph.get_nodes():
+            supporting = graph.get_children(n)
+            total += len(supporting) == 0
+
         print(total)
 
         assert total > 507
