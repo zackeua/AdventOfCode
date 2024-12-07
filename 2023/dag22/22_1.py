@@ -1,5 +1,6 @@
 import sys
 
+
 class Graph:
 
     def __init__(self):
@@ -17,7 +18,7 @@ class Graph:
 
         if to not in self._nodes:
             self._nodes.append(to)
-        
+
         if to not in self._ingoing_edges:
             self._ingoing_edges[to] = []
         self._ingoing_edges[to].append(f)
@@ -30,10 +31,6 @@ class Graph:
 
     def get_children(self, node):
         return self._outgoing_edges.get(node, [])
-
-
-
-
 
 
 class Corner:
@@ -175,11 +172,16 @@ def main():
         total = 0
         for n in graph.get_nodes():
             supporting = graph.get_children(n)
-            total += len(supporting) == 0
+            all_safe = True
+            for c in graph.get_children(n):
+                if len(graph.get_parents(c)) == 1:
+                    all_safe = False
+            total += all_safe
 
         print(total)
 
         assert total > 507
+        assert total != 531
         assert total < 670
 
 
