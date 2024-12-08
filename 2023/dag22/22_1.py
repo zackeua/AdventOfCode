@@ -8,6 +8,15 @@ class Graph:
         self._outgoing_edges = {}
         self._nodes = []
 
+    def add_node(self, node):
+        if node not in self._nodes:
+            self._nodes.append(node)
+
+        if node not in self._ingoing_edges:
+            self._ingoing_edges[node] = []
+        if node not in self._outgoing_edges:
+            self._outgoing_edges[node] = []
+
     def add_edge(self, f, to):
         if f not in self._nodes:
             self._nodes.append(f)
@@ -51,6 +60,9 @@ class Corner:
 
         return self.__str__()
 
+    def copy(self):
+        return Corner(self.x, self.y, self.z)
+
 
 class Block:
 
@@ -66,6 +78,9 @@ class Block:
         self.max_corner = Corner(x_max, y_max, z_max)
         self.supported_by = []
         self.supporting = []
+
+    def copy(self):
+        return Block(self.index, self.min_corner.copy(), self.max_corner.copy())
 
     def __lt__(self, other):
         return (self.min_corner.z, self.max_corner.z) < (other.min_corner.z, other.max_corner.z)
@@ -84,6 +99,14 @@ class Block:
 
         for x in range(self.min_corner.x, self.max_corner.x + 1):
             for y in range(self.min_corner.y, self.max_corner.y + 1):
+                base.append((x, y))
+        return base
+
+    def block_base(self):
+        base = []
+
+        for x in range(self.min_corner.x, self.max_corner.x + 1):
+            for y in range(self.min_corner.y, self.max_corner.y + 1):
                 base.append((x, y, self.min_corner.z))
         return base
 
@@ -97,7 +120,7 @@ class Block:
 
     def supports(self, other):
         for coord in self.supporting_coordinates():
-            if coord in other.base_coordinates():
+            if coord in other.block_base():
                 return True
         return False
 
@@ -105,44 +128,45 @@ class Block:
 def determine_supports(blocks):
     graph = Graph()
     for i in range(len(blocks)):
+        graph.add_node(blocks[i].index)
         for j in range(len(blocks)):
-            # print(chr(ord('A') + i), chr(ord('A') + j), blocks[i].supports(blocks[j]))
+            if i == j:
+                continue
             if blocks[i].supports(blocks[j]):
-                graph.add_edge(i, j)
+                graph.add_edge(blocks[i].index, blocks[j].index)
     return graph
 
 
-def determine_safe_to_remove(blocks):
-    total = 0
-    for block in blocks:
-        safe_to_remove = True
-        for other in block.supporting:
-            if len(blocks[other].supported_by) == 1:
-                safe_to_remove = False
-                break
-        if safe_to_remove:
-            total += 1
-    return total
+def fall_down(blocks: list[Block]):
+    blocks_copy = [block.copy() for block in blocks]
+    non_fallen_sorted_blocks = []
 
+    while blocks_copy:
+        min_z_id = 0
 
-def fall_down(blocks):
-    for i, block in enumerate(blocks):
-        print(i+1, '/', len(blocks))
-        while True:
-            final = False
-            if block.min_corner.z == 1:
-                final = True
+        min_z = sys.float_info.max
+        for i, elem in enumerate(blocks_copy):
+            if elem.min_corner.z < min_z:
+                min_z = elem.min_corner.z
+                min_z_id = i
 
-            if not final:
-                for other in range(i):
-                    if blocks[other].max_corner.z < block.min_corner.z and blocks[other].supports(block):
-                        final = True
-                        break
-            if final:
-                print(block)
-                break
-            block.min_corner.z -= 1
-            block.max_corner.z -= 1
+        non_fallen_sorted_blocks.append(blocks_copy.pop(min_z_id))
+
+    furthest_point_up = {}
+    for block in non_fallen_sorted_blocks:
+        highest_z = 0
+        for base_coordinate in block.base_coordinates():
+            z_coordinate = furthest_point_up.get(base_coordinate, 0)
+            if z_coordinate > highest_z:
+                highest_z = z_coordinate
+        new_z = highest_z + 1
+        lower_amount = block.min_corner.z - new_z
+        block.min_corner.z -= lower_amount
+        block.max_corner.z -= lower_amount
+        for base_coordinate in block.base_coordinates():
+            furthest_point_up[base_coordinate] = block.max_corner.z
+
+    return non_fallen_sorted_blocks
 
 
 def main():
@@ -153,20 +177,7 @@ def main():
         data = [[Corner(*elem.split(',')) for elem in line] for line in data]
         blocks = [Block(i, *line) for i, line in enumerate(data)]
 
-        blocks = sorted(blocks)
-
-        print('Sorted blocks')
-        for block in blocks:
-            print(block)
-
-        fall_down(blocks)
-
-        blocks = sorted(blocks)
-
-        fall_down(blocks)
-
-        blocks = sorted(blocks)
-
+        blocks = fall_down(blocks)
         graph = determine_supports(blocks)
 
         total = 0
@@ -176,11 +187,13 @@ def main():
             for c in graph.get_children(n):
                 if len(graph.get_parents(c)) == 1:
                     all_safe = False
+
             total += all_safe
 
         print(total)
 
         assert total > 507
+        assert total != 508
         assert total != 531
         assert total < 670
 
