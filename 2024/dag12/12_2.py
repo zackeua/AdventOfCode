@@ -13,20 +13,16 @@ def determine_sides(boundary_elements):
         total_sides += 1
         x, y = element
 
-        if (x - 1, y) not in visited:
-            if (x - 1, y) in elements:
-                elements.remove((x - 1, y))
-        if (x + 1, y) not in visited:
-            if (x + 1, y) in elements:
-                elements.remove((x + 1, y))
-        if (x, y - 1) not in visited:
-            if (x, y - 1) in elements:
-                elements.remove((x, y - 1))
-        if (x, y + 1) not in visited:
-            if (x, y + 1) in elements:
-                elements.remove((x, y + 1))
+        if (x - 1, y) in elements:
+            elements.remove((x - 1, y))
+        if (x + 1, y) in elements:
+            elements.remove((x + 1, y))
+        if (x, y - 1) in elements:
+            elements.remove((x, y - 1))
+        if (x, y + 1) in elements:
+            elements.remove((x, y + 1))
 
-    return total_sides
+    return visited
 
 
 def calculate_area_and_boundary(garden):
@@ -75,12 +71,16 @@ def calculate_area_and_boundary(garden):
                 elif (x, y + 1) not in visited_slots and (x, y + 1) not in region:
                     region.append((x, y + 1))
             # boundary_elements = list(set(boundary_elements))
-            boundary = determine_sides(boundary_elements)
+            # print(boundary_elements)
+            print(len(boundary_elements))
+            sides = determine_sides(boundary_elements)
+            sides = list(set(sides))
             print(elem)
             print(area)
-            print(boundary)
+            print(len(sides))
+            print()
             input()
-            total += area * boundary
+            total += area * len(sides)
     return total
 
 
