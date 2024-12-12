@@ -1,7 +1,7 @@
 import sys
 
 
-def determine_sides(boundary_elements):
+def determine_sides(garden, boundary_elements):
     total_sides = 0
     visited = []
     elements = [elem for elem in boundary_elements]
@@ -40,7 +40,9 @@ def calculate_area_and_boundary(garden):
 
             region = [(i, j)]
             area = 0
-            boundary_elements = []
+            boundary_elements = set()
+            corners = 0
+            convex = 0
 
             while region:
                 (x, y) = region[0]
@@ -50,37 +52,56 @@ def calculate_area_and_boundary(garden):
                 area += 1
 
                 visited_slots.add(((x, y)))
+                tmp_sides = 0
 
                 if garden[x - 1][y] != elem:
-                    boundary_elements.append((x - 1, y))
+                    pass
                 elif (x - 1, y) not in visited_slots and (x - 1, y) not in region:
                     region.append((x - 1, y))
 
                 if garden[x + 1][y] != elem:
-                    boundary_elements.append((x + 1, y))
+                    pass
                 elif (x + 1, y) not in visited_slots and (x + 1, y) not in region:
                     region.append((x + 1, y))
 
                 if garden[x][y - 1] != elem:
-                    boundary_elements.append((x, y - 1))
+                    pass
                 elif (x, y - 1) not in visited_slots and (x, y - 1) not in region:
                     region.append((x, y - 1))
 
                 if garden[x][y + 1] != elem:
-                    boundary_elements.append((x, y + 1))
+                    pass
                 elif (x, y + 1) not in visited_slots and (x, y + 1) not in region:
                     region.append((x, y + 1))
-            # boundary_elements = list(set(boundary_elements))
-            # print(boundary_elements)
-            print(len(boundary_elements))
-            sides = determine_sides(boundary_elements)
-            sides = list(set(sides))
-            print(elem)
-            print(area)
-            print(len(sides))
-            print()
-            input()
-            total += area * len(sides)
+
+                # check concave corners
+                if garden[x][y] == elem and garden[x][y + 1] == elem and garden[x + 1][y] == elem and garden[x + 1][y + 1] != elem:
+                    corners += 1
+
+                if garden[x][y] == elem and garden[x][y - 1] == elem and garden[x + 1][y] == elem and garden[x + 1][y - 1] != elem:
+                    corners += 1
+
+                if garden[x][y] == elem and garden[x][y - 1] == elem and garden[x - 1][y] == elem and garden[x - 1][y - 1] != elem:
+                    corners += 1
+
+                if garden[x][y] == elem and garden[x][y + 1] == elem and garden[x - 1][y] == elem and garden[x - 1][y + 1] != elem:
+                    corners += 1
+
+                # check convex corners
+                if garden[x][y] == elem and garden[x - 1][y] != elem and garden[x][y - 1] != elem:
+                    corners += 1
+
+                if garden[x][y] == elem and garden[x + 1][y] != elem and garden[x][y - 1] != elem:
+                    corners += 1
+
+                if garden[x][y] == elem and garden[x - 1][y] != elem and garden[x][y + 1] != elem:
+                    corners += 1
+
+                if garden[x][y] == elem and garden[x + 1][y] != elem and garden[x][y + 1] != elem:
+                    corners += 1
+
+            sides = corners
+            total += area * sides
     return total
 
 
@@ -95,6 +116,7 @@ def main():
     result = calculate_area_and_boundary(data)
 
     print(result)
+    assert result > 813785
 
 
 if __name__ == '__main__':
