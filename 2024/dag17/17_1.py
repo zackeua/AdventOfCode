@@ -26,7 +26,6 @@ def computer(program, registers, program_counter):
                 numerator = registers[4]  # A
                 exponent = get_val(registers, program[program_counter + 1])
                 denomarator = 2 ** exponent
-                res = numerator
                 registers[4] = numerator // denomarator
                 program_counter += 2
             elif program[program_counter] == 1:
@@ -38,7 +37,7 @@ def computer(program, registers, program_counter):
                 program_counter += 2
             elif program[program_counter] == 3:
                 if registers[4] == 0:
-                    program_counter += 0
+                    program_counter += 2
                 else:
                     program_counter = program[program_counter + 1]
             elif program[program_counter] == 4:
@@ -50,18 +49,16 @@ def computer(program, registers, program_counter):
                 print(','.join(output))
                 program_counter += 2
             elif program[program_counter] == 6:
-                numerator = registers[5]  # A
+                numerator = registers[4]  # A
                 exponent = get_val(registers, program[program_counter + 1])
                 denomarator = 2 ** exponent
-                res = numerator
-                registers[4] = numerator // denomarator
+                registers[5] = numerator // denomarator
                 program_counter += 2
             elif program[program_counter] == 7:
-                numerator = registers[6]  # A
+                numerator = registers[4]  # A
                 exponent = get_val(registers, program[program_counter + 1])
                 denomarator = 2 ** exponent
-                res = numerator
-                registers[4] = numerator // denomarator
+                registers[6] = numerator // denomarator
                 program_counter += 2
             else:
                 assert False
