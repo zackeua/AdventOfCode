@@ -72,6 +72,25 @@ def computer(program, registers, program_counter):
     return output
 
 
+def search(depth, val, program, registers, tmp=[]):
+    if depth == -1:
+        return val, tmp
+    for i in range(0, 8):
+        a_val = val + i * 8 ** depth
+        registers[4] = a_val
+        registers[5] = 0
+        registers[6] = 0
+        program_counter = 0
+        tmp = computer(program, registers, program_counter)
+        if len(tmp) == len(program):
+            all_equal = True
+            for j in range(depth, len(program)):
+                if tmp[j] != program[j]:
+                    all_equal = False
+            if all_equal:
+                return search(depth - 1, a_val, program, registers, tmp)
+
+
 def main():
     with open(sys.argv[1], 'r') as f:
         data = f.readlines()
@@ -94,29 +113,7 @@ def main():
             program = list(map(int, line.split()[1].split(',')))
 
     a_val = 0
-    a_val += 5 * 8 ** 15
-    a_val += 3 * 8 ** 14
-    a_val += 2 * 8 ** 13
-    a_val += 2 * 8 ** 12
-    a_val += 3 * 8 ** 11
-    a_val += 5 * 8 ** 10
-    a_val += 0 * 8 ** 9
-    a_val += 1 * 8 ** 8
-    a_val += 3 * 8 ** 7
-    a_val += 4 * 8 ** 6
-    a_val += 0 * 8 ** 5
-    a_val += 3 * 8 ** 4
-    a_val += 6 * 8 ** 3
-    a_val += 0 * 8 ** 2
-    a_val += 1 * 8 ** 1
-    a_val += 7 * 8 ** 0
-    registers[4] = a_val
-    registers[5] = 0
-    registers[6] = 0
-    program_counter = 0
-    tmp = computer(program, registers, program_counter)
-    # print(program)
-    # print(tmp)
+    a_val, tmp = search(15, 0, program, registers)
 
     print(a_val)
     assert len(tmp) == len(program)
