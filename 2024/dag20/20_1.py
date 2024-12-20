@@ -38,7 +38,7 @@ def main():
 
     baseline_distance = nx.dijkstra_path_length(graph, start, end)
 
-    print(baseline_distance)
+    # print(baseline_distance)
 
     buckets = {}
     for i, line in enumerate(tqdm.tqdm(data)):
@@ -69,8 +69,8 @@ def main():
                     buckets[saved] += 1
     total = 0
     for key in buckets.keys():
-        print(key, ' ', buckets[key])
-        if buckets[key] <= 100:
+        # print(key, ' ', buckets[key])
+        if key >= 100:
             total += buckets[key] // 2
 
     print(total)
