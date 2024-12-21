@@ -70,28 +70,34 @@ def main():
         data = [line.strip() for line in data]
         print(data)
 
-    numeric_keypad_robot = 'A'
-    directional_keypad_robot_1 = 'A'
-    directional_keypad_robot_2 = 'A'
+    robot_1_position = 'A'
+    robot_2_position = 'A'
+    robot_3_position = 'A'
 
     total = 0
     for sequence in data:
+        print(sequence)
         robot_1_movements = ''
         robot_2_movements = ''
         robot_3_movements = ''
-        for key in sequence:
-            robot_1_movement = NUMPAD_PRESSES[numeric_keypad_robot][key]
+        for key_1 in sequence:
+            robot_1_movement = NUMPAD_PRESSES[robot_1_position][key_1]
+            robot_1_position = key_1
             robot_1_movements += robot_1_movement
-            numeric_keypad_robot = key
             for key_2 in robot_1_movement:
-                robot_2_movement = KEYPAD_PRESSES[directional_keypad_robot_1][key_2]
-                directional_keypad_robot_1 = key_2
+                robot_2_movement = KEYPAD_PRESSES[robot_2_position][key_2]
+                robot_2_position = key_2
                 robot_2_movements += robot_2_movement
                 for key_3 in robot_2_movement:
-                    robot_3_movement = KEYPAD_PRESSES[directional_keypad_robot_2][key_3]
-                    directional_keypad_robot_2 = key_3
+                    robot_3_movement = KEYPAD_PRESSES[robot_3_position][key_3]
+                    robot_3_position = key_3
                     robot_3_movements += robot_3_movement
 
+        print(robot_3_movements)
+        print(robot_2_movements)
+        print(robot_1_movements)
+        print(len(robot_3_movements), ' * ', int(sequence[:-1]))
+        print(len(robot_3_movements) * int(sequence[:-1]))
         total += len(robot_3_movements) * int(sequence[:-1])
     print(total)
 
