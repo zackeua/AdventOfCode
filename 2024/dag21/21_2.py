@@ -68,9 +68,7 @@ KEYPAD_PRESSES = {'^': {'^': ['A'], 'A': ['>A'],
 def search(sequence):
     # print(sequence)
     min_len = None
-    for s in generate_moves(sequence):
-        if min_len is None or len(s) < min_len:
-            min_len = len(s)
+    min_len = generate_moves(sequence)
 
     return min_len * int(sequence[:-1])
 
@@ -90,8 +88,7 @@ def generate_numpad(sequence):
     return actions
 
 
-def generate_keypad(squence):
-    robot_position = 'A'
+def generate_keypad(squence, robot_position='A'):
     actions = ['']
     for key in squence:
         new_actions = []
@@ -102,20 +99,34 @@ def generate_keypad(squence):
 
         actions = [action for action in new_actions]
 
-    return actions
+    return actions, robot_position
 
 
-def generate_internal(sequence, depth):
+def generate_internal(sequence, depth, robot_position='A'):
     if depth == 2:
-        yield sequence
+        return len(sequence)
     else:
-        for keypad_robot_sequence in generate_keypad(sequence):
-            yield from generate_internal(keypad_robot_sequence, depth + 1)
+        total = 0
+        for c in sequence:
+            best = None
+            keypad_sequences, robot_position = generate_keypad(
+                c, robot_position)
+            for keypad_robot_sequence in keypad_sequences:
+                tmp = generate_internal(
+                    keypad_sequences, depth + 1)
+                if best is None or tmp < best:
+                    best = tmp
+            total += best
+        return total
 
 
 def generate_moves(sequence):
+    best = None
     for numpad_robot_sequence in generate_numpad(sequence):
-        yield from generate_internal(numpad_robot_sequence, 0)
+        tmp = generate_internal(numpad_robot_sequence, 0)
+        if best is None or tmp < best:
+            best = tmp
+    return best
 
 
 def main():
