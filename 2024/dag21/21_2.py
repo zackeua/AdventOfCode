@@ -1,6 +1,17 @@
 import sys
 from functools import lru_cache
 
+
+class State:
+    def __init__(self, numpad_position='A', keypad_position=['A' for _ in range(25)], min_len=0):
+        self.numpad_position = numpad_position
+        self.keypad_position = [k for k in keypad_position]
+        self.min_len = min_len
+
+    def copy(self):
+        return State(self.numpad_position, self.keypad_position, self.min_len)
+
+
 NUMPAD_PRESSES = {'7': {'7': ['A'], '8': ['>A'], '9': ['>>A'],
                         '4': ['vA'], '5': ['>vA', 'v>A'], '6': ['>>vA', 'v>>A'],
                         '1': ['vvA'], '2': ['>vvA', 'vv>A'], '3': ['>>vvA', 'vv>>A'],
@@ -68,9 +79,11 @@ KEYPAD_PRESSES = {'^': {'^': ['A'], 'A': ['>A'],
 def search(sequence):
     # print(sequence)
     min_len = None
-    min_len = generate_moves(sequence)
+    state = State()
+    state = generate_moves(sequence, state)
+    print(state.min_len, ' ', int(sequence[:-1]))
 
-    return min_len * int(sequence[:-1])
+    return state.min_len * int(sequence[:-1])
 
 
 def generate_numpad(sequence):
@@ -102,31 +115,36 @@ def generate_keypad(squence, robot_position='A'):
     return actions, robot_position
 
 
-def generate_internal(sequence, depth, robot_position='A'):
-    if depth == 2:
-        return len(sequence)
+# @lru_cache(maxsize=None)
+def generate_internal(c, depth, state):
+    if depth == 15:
+        state.min_len += 1
+        return state
     else:
-        total = 0
-        for c in sequence:
-            best = None
-            keypad_sequences, robot_position = generate_keypad(
-                c, robot_position)
-            for keypad_robot_sequence in keypad_sequences:
-                tmp = generate_internal(
-                    keypad_sequences, depth + 1)
-                if best is None or tmp < best:
-                    best = tmp
-            total += best
-        return total
+        best_state = State(min_len=sys.float_info.max)
+        keypad_sequences, robot_position = generate_keypad(
+            c, state.keypad_position[depth])
+        for sequence in keypad_sequences:
+            copy_state = state.copy()
+            copy_state.keypad_position[depth] = robot_position
+            for cc in sequence:
+                copy_state = generate_internal(cc, depth + 1, copy_state)
+            if copy_state.min_len < best_state.min_len:
+                best_state = copy_state
+            return best_state
 
 
-def generate_moves(sequence):
-    best = None
+def generate_moves(sequence, state):
+    best_state = State(min_len=sys.float_info.max)
     for numpad_robot_sequence in generate_numpad(sequence):
-        tmp = generate_internal(numpad_robot_sequence, 0)
-        if best is None or tmp < best:
-            best = tmp
-    return best
+        copy_state = state.copy()
+        for c in numpad_robot_sequence:
+            copy_state.numpad_position = c
+            copy_state = generate_internal(c, 0, copy_state)
+        if copy_state.min_len < best_state.min_len:
+            best_state = copy_state
+
+    return best_state
 
 
 def main():
