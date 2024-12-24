@@ -11,6 +11,32 @@ class State:
     def copy(self):
         return State(self.numpad_position, self.keypad_position, self.min_len)
 
+    def __eq__(self, o):
+        if self.numpad_position != o.numpad_position:
+            return False
+
+        for i, j in zip(self.keypad_position, o.keypad_position):
+            if i != j:
+                return False
+        if self.min_len != o.min_len:
+            return False
+
+        return True
+
+    def __hash__(self):
+
+        total = 0
+
+        total += ord(self.numpad_position)
+
+        for i in self.keypad_position:
+            total * 1024
+            total += ord(i)
+
+        total = total * self.min_len
+
+        return total
+
 
 NUMPAD_PRESSES = {'7': {'7': ['A'], '8': ['>A'], '9': ['>>A'],
                         '4': ['vA'], '5': ['>vA', 'v>A'], '6': ['>>vA', 'v>>A'],
@@ -117,7 +143,7 @@ def generate_keypad(squence, robot_position='A'):
 
 # @lru_cache(maxsize=None)
 def generate_internal(c, depth, state):
-    if depth == 15:
+    if depth == 25:
         state.min_len += 1
         return state
     else:
