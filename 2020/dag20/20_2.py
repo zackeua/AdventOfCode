@@ -70,7 +70,6 @@ class Tile:
             case Direction.RIGHT:
                 return tile1_hashes[2] == tile2_hashes[7] and tile1_hashes[3] == tile2_hashes[6]
             case Direction.DOWN:
-                print(tile1_hashes, tile2_hashes)
                 return tile1_hashes[5] == tile2_hashes[0] and tile1_hashes[4] == tile2_hashes[1]
             case Direction.LEFT:
                 return tile1_hashes[7] == tile2_hashes[2] and tile1_hashes[6] == tile2_hashes[3]
@@ -344,6 +343,82 @@ def show_full_image(img):
         print("".join(line))
 
 
+def calculate_roughness(img):
+    total = 0
+    for line in img:
+        for elem in line:
+            total += elem == "#"
+    return total
+
+
+def search(img):
+
+    monster_count = 0
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img = flip(img)
+
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img, monster_count = scan_image(img)
+    if monster_count != 0:
+        return img
+    img = rotate_90_counterclockwise(img)
+
+    img, monster_count = scan_image(img)
+    return img
+
+
+def scan_image(img):
+    base_pattern = ["                  # ",
+                    "#    ##    ##    ###",
+                    " #  #  #  #  #  #   "]
+    pattern = [(b, a) for b, line in enumerate(base_pattern)
+               for a, c in enumerate(line) if c == "#"]
+    # pattern = [(0, 20)]
+
+    monster_count = 0
+    img_copy = [[a for a in line] for line in img]
+    for i in range(len(img) - len(base_pattern)):
+        for j in range(len(img[0]) - len(base_pattern[0])):
+            found_sea_monster = True
+            for ix, jx in pattern:
+                if img[i + ix][j + jx] != "#":
+                    found_sea_monster = False
+
+            if found_sea_monster:
+                monster_count += 1
+                for ix, jx in pattern:
+                    img_copy[i + ix][j + jx] = "O"
+    return img_copy, monster_count
+
+
 def main():
     with open(sys.argv[1], 'r') as f:
         data = f.readlines()
@@ -354,7 +429,8 @@ def main():
     for tile in tiles:
         match len(tile._neighbors):
             case 2:
-                print(tile)
+                pass
+                # print(tile)
             case 3:
                 pass
             case 4:
@@ -366,43 +442,14 @@ def main():
 
     place_tiles(img, tiles)
 
-    # print(img[0][0].hashes())
-    # print(img[1][0].hashes())
-    # print(img[0][1].hashes())
-
-    show_number_image(img)
-
-    print()
-    show_raw_image(img)
-
-    # print("Top      , right    , bottom  , left")
-    # print(img[0][0].hashes())
-    # print(img[0][1].hashes())
-    # print(img[1][0].hashes())
-    #
-    # img[0][0].rotate()
-    # img[0][1].rotate()
-    # # img[0][1].flip()
-    # # img[0][1].rotate()
-    # # img[0][1].rotate()
-    #
-    # print("Top      , right    , bottom  , left")
-    # print(img[0][0].hashes())
-    # print(img[0][1].hashes())
-    # print(img[1][0].hashes())
-    #
-    # print()
-    # show_raw_image(img)
-
     rotate_and_flip_tiles(img)
-
-    print()
-    show_raw_image(img)
 
     full_image = create_full_image(img)
 
-    print()
-    show_full_image(full_image)
+    edited_image = search(full_image)
+
+    result = calculate_roughness(edited_image)
+    print(result)
 
 
 if __name__ == "__main__":
