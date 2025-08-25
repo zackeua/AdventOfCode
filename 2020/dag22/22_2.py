@@ -1,70 +1,70 @@
 import sys
 import functools
 
+# global_game_id = 1
+
+game_memory = ()
 
 
 def make_tuple(arg):
     return tuple([tuple(row) for row in arg])
 
 
-@functools.lru_cache
-def make_list(arg):
-    return [list(row) for row in arg]
+def play_round(player_1_deck, player_2_deck):
+    # print(player_1_deck, player_2_deck)
+    global game_memory
+    if (player_1_deck, player_2_deck) in game_memory:
+        return player_1_deck, (), 3
 
-@functools.lru_cache
-def compare(num1, num2, len_deck1, len_deck2):
-    if num1 <= len_deck1 and num2 <= len_deck2:
-        return -1, -1 # Recurse
-    if num1 > num2:
-        return True, [num1, num2]
+    card1, player_1_deck = player_1_deck[0], player_1_deck[1:]
+    card2, player_2_deck = player_2_deck[0], player_2_deck[1:]
+
+    winner = -1
+    if card1 <= len(player_1_deck) and card2 <= len(player_2_deck):
+        # global_game_id += 1
+        tmp_player_1_deck, tmp_player_2_deck, winner = play_game(
+            player_1_deck[:card1], player_2_deck[:card2], True)
+        # input()
+        if winner == 3:
+            return tmp_player_1_deck, None, 3
+        if winner == 1:
+            player_1_deck += (card1, card2)
+        else:
+            player_2_deck += (card2, card1)
+    elif card1 > card2:
+        player_1_deck += (card1, card2)
+        winner = 1
     else:
-        return False, [num2, num1]
+        player_2_deck += (card2, card1)
+        winner = 2
+    return player_1_deck, player_2_deck, winner
 
 
-@functools.lru_cache
-def round(num1, num2, deck1, deck2):
-    check, _ = compare(num1, num2, len(deck1), len(deck2))
-    if check == -1:
-        check, _ = play((deck1, deck2))
+def play_game(player_1_deck: tuple[int], player_2_deck: tuple[int], run_greedy_checks: bool = False):
+    if run_greedy_checks:
+        all_cards = player_1_deck
+        all_cards += player_2_deck
 
-    if check:
-        deck1 += (num1, num2)
-    else:
-        deck2 += (num2, num1)
-    return deck1, deck2, check
+        if max(all_cards) in player_1_deck:
+            return None, None, 1
+        else:
+            return None, None, 2
 
-@functools.lru_cache
-def play(decks):
-    player1 = decks[0]
-    player2 = decks[1]
+    # round_index = 0
+    # this_game_id = global_game_id + 0
+    winner = -1
+    while len(player_1_deck) != 0 and len(player_2_deck) != 0:
+        # round_index += 1
+        player_1_deck, player_2_deck, winner = play_round(
+            player_1_deck, player_2_deck)
 
-    round_index = 0
-    while len(player1) != 0 and len(player2) != 0:
-        round_index += 1
-        #print(f'-- Round {round_index} --')
-        card1 = player1[0]
-        card2 = player2[0]
-        #print(f"Player 1's deck: {player1}")
-        #print(f"Player 2's deck: {player2}")
-        #print(f"Player 1 plays: {card1}")
-        #print(f"Player 2 plays: {card2}")
-        player1 = player1[1:]
-        player2 = player2[1:]
+    game_winner = (1 if len(player_1_deck) > len(
+        player_2_deck) or winner == 3 else 2)
+    return player_1_deck, player_2_deck, game_winner
 
-        player1, player2, check = round(card1, card2, player1, player2)
-        #print(f'Player {1 if check else 2} wins the round!')
 
-    #print(f'== Post-game results ==')
-    #print(f"Player 1's deck: {player1}")
-    #print(f"Player 2's deck: {player2}")
-
-    if len(player1) != 0:
-        winner = player1
-    else:
-        winner = player2
-    score = sum([w*i for w, i in zip(range(1, len(winner)+1), winner[::-1])])
-    #print(score)
-    return winner == player1, score
+def calculate_score(cards):
+    return sum(w * i for w, i in enumerate(cards[::-1], 1))
 
 
 def main():
@@ -72,10 +72,20 @@ def main():
         data = f.read()
         data = data.split('\n\n')
         data = [list(map(int, row.split('\n')[1:])) for row in data]
-        print(data)
-        print(make_tuple(data))
-        
-        print(play(make_tuple(data))[1])
+        player_1_cards = tuple(data[0])
+        player_2_cards = tuple(data[1])
+        player_1_cards, player_2_cards, winner = play_game(
+            player_1_cards, player_2_cards)
+        if winner == 1:
+            total = calculate_score(player_1_cards)
+        else:
+            total = calculate_score(player_2_cards)
+        print(player_1_cards)
+        print(player_2_cards)
+        print(total)
+        assert total > 31702
+        assert total < 33799
+        assert total < 38268
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 import sys
 
+
 def compare(num1, num2):
     if num1 > num2:
         return True, [num1, num2]
@@ -33,7 +34,7 @@ def play(decks):
 
     print(f'== Post-game results ==')
     print(f"Player 1's deck: {player1}")
-    print(f"Player 2's deck: {player2}") 
+    print(f"Player 2's deck: {player2}")
 
     if len(player1) != 0:
         winner = player1
@@ -47,9 +48,10 @@ def main():
     with open(sys.argv[1], 'r') as f:
         data = f.read()
         data = data.split('\n\n')
-        data = [list(map(int,row.split('\n')[1:])) for row in data]
+        data = [list(map(int, row.split('\n')[1:])) for row in data]
         print(data)
         play(data)
+
 
 if __name__ == '__main__':
     main()
