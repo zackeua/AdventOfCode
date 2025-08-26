@@ -85,13 +85,20 @@ def main():
         tiles_to_flip_to_white = []
         tiles_to_flip_to_black = []
         tiles_to_consider = [key for key in grid.keys()]
+        for tile in [key for key in grid.keys()]:
+            for n in tile.get_neighbors():
+                if n not in tiles_to_consider:
+                    tiles_to_consider.append(n)
+
         for tile in tiles_to_consider:
             tile_is_black = grid[tile] == 1
             black_neighbors = sum(grid[t] for t in tile.get_neighbors())
             if tile_is_black and (black_neighbors == 0 or black_neighbors > 2):
-                tiles_to_flip_to_white.append(tile)
+                if tile not in tiles_to_flip_to_white:
+                    tiles_to_flip_to_white.append(tile)
             if not tile_is_black and black_neighbors == 2:
-                tiles_to_flip_to_black.append(tile)
+                if tile not in tiles_to_flip_to_black:
+                    tiles_to_flip_to_black.append(tile)
 
         for tile in tiles_to_flip_to_black:
             grid[tile] = 1
