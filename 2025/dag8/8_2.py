@@ -58,13 +58,8 @@ def main():
     # for elem in sorted_junction_boxes:
     # print(elem, distance(elem[0], elem[1]))
 
-    # input()
-    connections = 0
-    max_connections = 1000
+    total = 0
     for box1, box2 in sorted_junction_boxes:
-        if connections == max_connections:
-            break
-        connections += 1
         min_circuit = get_lowest_circuit(box1, box2)
         if min_circuit is None:
             c = Circuit(next_circuit_index)
@@ -85,21 +80,22 @@ def main():
                             box.circuit = circuit_dict[min_circuit]
             box1.circuit = circuit_dict[min_circuit]
             box2.circuit = circuit_dict[min_circuit]
-    # for elem in data:
-    # print(elem)
 
-    circuit_counts = {}
-    for elem in data:
-        if elem.circuit is not None:
-            if elem.circuit.index not in circuit_counts:
-                circuit_counts[elem.circuit.index] = 0
-            circuit_counts[elem.circuit.index] += 1
+        should_break = True
+        prev_index = -1
+        for b in data:
+            if b.circuit is None:
+                should_break = False
+                break
+            if prev_index == -1:
+                prev_index = b.circuit.index
+            if b.circuit is not None and b.circuit.index != prev_index:
+                should_break = False
+                break
+        if should_break:
+            total = box1.coordinates[0] * box2.coordinates[0]
+            break
 
-    circuit_counts = sorted(circuit_counts.values())
-
-    print(circuit_counts)
-
-    total = circuit_counts[-1] * circuit_counts[-2] * circuit_counts[-3]
     print(total)
 
 
