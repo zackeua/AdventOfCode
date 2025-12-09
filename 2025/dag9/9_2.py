@@ -56,6 +56,8 @@ def main():
     for a, b in itertools.combinations(data, 2):
         valid_rectangle = True
         for elem1, elem2 in zip(data, data[1:] + [data[0]]):
+            if elem1 == a or elem1 == b or elem2 == a or elem2 == b:
+                continue
             # (a[0], a[1])              (a[0], b[1])
             #
             #                 X (elem1)
@@ -71,53 +73,45 @@ def main():
             line_min_y = min(elem1[1], elem2[1])
             line_max_y = max(elem1[1], elem2[1])
 
-            # line 1: (a[0], a[1]) -> (a[0], b[1])
-            y_min = min(a[1], b[1])
-            y_max = max(a[1], b[1])
-            x = a[0]
+            if line_min_y == line_max_y:
+                # line 1: (a[0], a[1]) -> (a[0], b[1])
+                y_min = min(a[1], b[1])
+                y_max = max(a[1], b[1])
+                x = a[0]
 
-            if (
-                line_min_x < x < line_max_x
-                and y_min < line_min_y < y_max
-                and y_min < line_max_y < y_max
-            ):
-                valid_rectangle = False
-                break
-            # line 2: (a[0], a[1]) -> (b[0], a[1])
-            x_min = min(a[0], b[0])
-            x_max = max(a[0], b[0])
-            y = a[1]
+                if line_min_x < x < line_max_x and y_min < line_min_y < y_max:
+                    valid_rectangle = False
+                    break
+                # line 3: (b[0], a[1]) -> (b[0], b[1])
+                y_min = min(a[1], b[1])
+                y_max = max(a[1], b[1])
+                x = b[0]
+                if line_min_x < x < line_max_x and y_min < line_min_y < y_max:
+                    valid_rectangle = False
+                    break
+            elif line_min_x == line_max_x:
+                # line 2: (a[0], a[1]) -> (b[0], a[1])
+                x_min = min(a[0], b[0])
+                x_max = max(a[0], b[0])
+                y = a[1]
 
-            if (
-                line_min_y < y < line_max_y
-                and x_min < line_min_x < x_max
-                and x_min < line_max_x < x_max
-            ):
-                valid_rectangle = False
-                break
-            # line 3: (b[0], a[1]) -> (b[0], b[1])
-            y_min = min(a[1], b[1])
-            y_max = max(a[1], b[1])
-            x = b[0]
-            if (
-                line_min_x < x < line_max_x
-                and y_min < line_min_y < y_max
-                and y_min < line_max_y < y_max
-            ):
-                valid_rectangle = False
-                break
+                if line_min_y < y < line_max_y and x_min < line_min_x < x_max:
+                    valid_rectangle = False
+                    break
 
-            # line 4: (a[0], b[1]) -> (b[0], b[1])
-            x_min = min(a[0], b[0])
-            x_max = max(a[0], b[0])
-            y = b[1]
-            if (
-                line_min_y < y < line_max_y
-                and x_min < line_min_x < x_max
-                and x_min < line_max_x < x_max
-            ):
-                valid_rectangle = False
-                break
+                # line 4: (a[0], b[1]) -> (b[0], b[1])
+                x_min = min(a[0], b[0])
+                x_max = max(a[0], b[0])
+                y = b[1]
+                if (
+                    line_min_y < y < line_max_y
+                    and x_min < line_min_x < x_max
+                    and x_min < line_max_x < x_max
+                ):
+                    valid_rectangle = False
+                    break
+            else:
+                assert False, "Should not happen"
 
         if not valid_rectangle:
             continue
