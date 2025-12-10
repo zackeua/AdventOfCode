@@ -4,7 +4,6 @@
 # ]
 # ///
 import sys
-import re
 
 from minizinc import Instance, Model, Solver
 
@@ -17,17 +16,16 @@ def main():
         for line in data:
             elems = line.split(" ")
             indicator_lights = elems[0]
-            joltage_requirements = elems[-1]
+            joltage_requirements = list(map(int, elems[-1][1:-1].split(",")))
             button_wiring_schematics = elems[1:-1]
             button_wiring_schematics = [
                 list(map(int, elem[1:-1].split(",")))
                 for elem in button_wiring_schematics
             ]
+            max_presses = sum(joltage_requirements)
             total_model_str = ""
             for i, button in enumerate(button_wiring_schematics):
-                button_constraint = (
-                    f"var bool: button_{i};\nconstraint button_{i} >= 0;\n\n"
-                )
+                button_constraint = f"var 0..{max_presses}: button_{i};\nconstraint button_{i} >= 0;\n\n"
                 # print(i, button)
                 # print(button_constraint)
                 total_model_str += button_constraint
@@ -40,9 +38,9 @@ def main():
                     if i in button:
                         indicator_light_constraint.append(f"button_{j}")
                 light_constraint = (
-                    "constraint ("
+                    "constraint "
                     + " + ".join(indicator_light_constraint)
-                    + f") mod 2 = {eq};\n\n"
+                    + f" = {joltage_requirements[i]};\n\n"
                 )
                 # print(light_constraint)
                 total_model_str += light_constraint
@@ -73,6 +71,7 @@ def main():
 
             # print(total_model_str)
             # print(elems)
+            # break
             # continue
             gecode = Solver.lookup("gecode")
             trivial = Model()
