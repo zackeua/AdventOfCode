@@ -113,11 +113,12 @@ def main():
             else:
                 assert False, "Should not happen"
 
-        if not valid_rectangle:
-            continue
+        # if not valid_rectangle:
+        # continue
         area = (abs(a[0] - b[0]) + 1) * (abs(a[1] - b[1]) + 1)
+        print(a, b, area)
         if area > largest_area:
-            print(a, b, area)
+            # print(a, b, area)
             largest_area = area
 
     # plt.plot(
