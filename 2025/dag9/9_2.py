@@ -8,8 +8,76 @@
 import sys
 import itertools
 import collections
-import tqdm
-import matplotlib.pyplot as plt
+# import tqdm
+# import matplotlib.pyplot as plt
+
+
+def lines_intersect(line_1, line_2):
+    line_1_min_x = min(line_1[0][0], line_1[1][0])
+    line_1_max_x = max(line_1[0][0], line_1[1][0])
+    line_1_min_y = min(line_1[0][1], line_1[1][1])
+    line_1_max_y = max(line_1[0][1], line_1[1][1])
+
+    line_2_min_x = min(line_2[0][0], line_2[1][0])
+    line_2_max_x = max(line_2[0][0], line_2[1][0])
+    line_2_min_y = min(line_2[0][1], line_2[1][1])
+    line_2_max_y = max(line_2[0][1], line_2[1][1])
+
+    if line_1_min_x == line_1_max_x:
+        if line_2_min_x == line_2_max_x:
+            # line_1a - line_2a - line_1b - line_2a OR
+            # line_2a - line_1a - line_2b - line_1b
+            line_1_outside_line_2 = line_1_min_y < line_2_min_y < line_1_max_y
+            line_2_outside_line_1 = line_2_min_y < line_1_min_y < line_2_max_y
+            return line_1_outside_line_2 or line_2_outside_line_1
+        elif line_2_min_y == line_2_max_y:
+            # lines crossing each other
+            line_2_inside_line_1_domain = line_1_min_y < line_2_min_y < line_1_max_y
+            line_1_inside_line_2_domain = line_2_min_x < line_1_min_x < line_2_max_x
+            return line_2_inside_line_1_domain and line_1_inside_line_2_domain
+        else:
+            assert False
+    elif line_1_min_y == line_1_max_y:
+        if line_2_min_x == line_2_max_x:
+            # lines crossing each other
+            line_2_inside_line_1_domain = line_1_min_y < line_2_min_y < line_1_max_y
+            line_1_inside_line_2_domain = line_2_min_x < line_1_min_x < line_2_max_x
+            return line_2_inside_line_1_domain and line_1_inside_line_2_domain
+        elif line_2_min_y == line_2_max_y:
+            # line_1a - line_2a - line_1b - line_2a OR
+            # line_2a - line_1a - line_2b - line_1b
+            line_1_outside_line_2 = line_1_min_x < line_2_min_x < line_1_max_x
+            line_2_outside_line_1 = line_2_min_x < line_1_min_x < line_2_max_x
+            return line_1_outside_line_2 or line_2_outside_line_1
+        else:
+            assert False
+    else:
+        assert False
+
+
+def line_intersects_polygon(line, polygon):
+    for temporary_line in polygon:
+        if lines_intersect(line, temporary_line):
+            return True
+    return False
+
+
+def rectangle_intersects_polygon(rectangle, polygon):
+    a, b = rectangle
+    point_1 = a
+    point_2 = (a[0], b[1])
+    point_3 = (b[0], a[1])
+    point_4 = b
+
+    if line_intersects_polygon((point_1, point_2), polygon):
+        return True
+    if line_intersects_polygon((point_1, point_3), polygon):
+        return True
+    if line_intersects_polygon((point_2, point_4), polygon):
+        return True
+    if line_intersects_polygon((point_3, point_4), polygon):
+        return True
+    return False
 
 
 def main():
@@ -17,124 +85,26 @@ def main():
         data = f.readlines()
         data = [tuple(map(int, line.split(","))) for line in data]
         # print(data)
-    largest_area = 0
-    min_x = sys.float_info.max
-    min_y = sys.float_info.max
-    max_x = sys.float_info.min
-    max_y = sys.float_info.min
-    for elem in data:
-        min_x = min(elem[0], min_x)
-        max_x = max(elem[0], max_x)
 
-        min_y = min(elem[1], max_x)
-        max_y = max(elem[1], max_y)
-
-    min_x -= 2
-    min_y -= 2
-    max_x += 2
-    max_y += 2
-    squares = collections.defaultdict(lambda: ".")
-    for elem in data:
-        squares[elem] = "#"
-
-    # for a, b in zip(data, data[1:] + [data[0]]):
-    #     mi_x = min(a[0], b[0])
-    #     ma_x = max(a[0], b[0])
-    #     mi_y = min(a[1], b[1])
-    #     ma_y = max(a[1], b[1])
-    #     x_diff = mi_x - ma_x
-    #     y_diff = mi_y - ma_y
-    #     if x_diff != 0:
-    #         for x in range(mi_x + 1, ma_x):
-    #             squares[(x, a[1])] = "X"
-    #
-    #     if y_diff != 0:
-    #         for y in range(mi_y + 1, ma_y):
-    #             squares[(a[0], y)] = "X"
+    edge_pairs = list(zip(data, data[1:] + [data[0]]))
 
     largest_area = 0
-    for a, b in itertools.combinations(data, 2):
-        valid_rectangle = True
-        for elem1, elem2 in zip(data, data[1:] + [data[0]]):
-            if elem1 == a or elem1 == b or elem2 == a or elem2 == b:
-                continue
-            # (a[0], a[1])              (a[0], b[1])
-            #
-            #                 X (elem1)
-            #                 |
-            # (b[0], a[1])    |         (b[0], b[1])
-            #                 |
-            #                 |
-            #                 |
-            #                 X (elem2)
+    area_pairs = itertools.combinations(data, 2)
+    for rectangle in area_pairs:
+        valid_rectangle = not rectangle_intersects_polygon(rectangle, edge_pairs)
 
-            line_min_x = min(elem1[0], elem2[0])
-            line_max_x = max(elem1[0], elem2[0])
-            line_min_y = min(elem1[1], elem2[1])
-            line_max_y = max(elem1[1], elem2[1])
-
-            if line_min_y == line_max_y:
-                # line 1: (a[0], a[1]) -> (a[0], b[1])
-                y_min = min(a[1], b[1])
-                y_max = max(a[1], b[1])
-                x = a[0]
-
-                if line_min_x < x < line_max_x and y_min < line_min_y < y_max:
-                    valid_rectangle = False
-                    break
-                # line 3: (b[0], a[1]) -> (b[0], b[1])
-                y_min = min(a[1], b[1])
-                y_max = max(a[1], b[1])
-                x = b[0]
-                if line_min_x < x < line_max_x and y_min < line_min_y < y_max:
-                    valid_rectangle = False
-                    break
-            elif line_min_x == line_max_x:
-                # line 2: (a[0], a[1]) -> (b[0], a[1])
-                x_min = min(a[0], b[0])
-                x_max = max(a[0], b[0])
-                y = a[1]
-
-                if line_min_y < y < line_max_y and x_min < line_min_x < x_max:
-                    valid_rectangle = False
-                    break
-
-                # line 4: (a[0], b[1]) -> (b[0], b[1])
-                x_min = min(a[0], b[0])
-                x_max = max(a[0], b[0])
-                y = b[1]
-                if (
-                    line_min_y < y < line_max_y
-                    and x_min < line_min_x < x_max
-                    and x_min < line_max_x < x_max
-                ):
-                    valid_rectangle = False
-                    break
-            else:
-                assert False, "Should not happen"
-
-        # if not valid_rectangle:
-        # continue
+        if not valid_rectangle:
+            continue
+        a, b = rectangle
         area = (abs(a[0] - b[0]) + 1) * (abs(a[1] - b[1]) + 1)
+        # area = (abs(a[0] - b[0])) * (abs(a[1] - b[1]))
+
         print(a, b, area)
         if area > largest_area:
             # print(a, b, area)
             largest_area = area
 
-    # plt.plot(
-    #     [a for a, b in squares.keys() if squares[(a, b)] in "#X"],
-    #     [b for a, b in squares.keys() if squares[(a, b)] in "#X"],
-    #     ".",
-    # )
-    # plt.show()
-    #
-    # for y in range(min_y, max_y):
-    #     for x in range(min_x, max_x + 1):
-    #         print(squares[(x, y)], end="")
-    #     print()
     print(largest_area)
-    # print(max_x - min_x)
-    # print(max_y - min_y)
 
 
 if __name__ == "__main__":
